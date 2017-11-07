@@ -20,8 +20,9 @@ power1 n k = product (replicate(fromInteger k) (fromInteger n))
 -- Part 3
 power2 :: Integer -> Integer -> Integer
 power2 n k | k == 0 = 1
-           | odd k  = n * (power2 n (k-1))
+           | odd k  = n * power2 n (k-1)
            | even k = power2 (n*n) (k `div` 2)
+--           | k < 0 = power2 n (abs k)
 
 
 -- Part 4
@@ -59,6 +60,7 @@ prop_powers_tup (n,k) = (n^k == power1 n k) && (n^k == power2 n k)
    The following function test_powers covers all test
    cases for n ∈ [-100, 100] and k ∈ [0, 20], which
    includes the concrete examples stated in A.
+   Results in 201*21=4221 test cases.
 -}
 test_powers :: Bool
 test_powers = and (map prop_powers_tup values)
