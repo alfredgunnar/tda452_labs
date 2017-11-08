@@ -32,7 +32,8 @@ value (Add c h) | valueCard c + value h <= 21 = valueCard c + value h
 valueRank :: Rank -> Integer
 valueRank r | r == Jack || r == Queen || r == King = 10
             | r == Ace                             = 11
-            | r == Numeric 2                               = 3
+            | r == Numeric 2                               = 2
+            | r == Numeric 3                               = 3
             | r == Numeric 4                               = 4
             | r == Numeric 5                               = 5
             | r == Numeric 6                               = 6
