@@ -68,6 +68,7 @@ test_powers = and (map prop_powers_tup values)
 
 
 -- D.
-prop_powers' :: Integer -> Integer -> Integer
+prop_powers' :: Integer -> Integer -> Bool
 prop_powers' n k = prop_powers n (abs k)
 -- abs k since function is only defined for k >= 0
+-- this solution is also used in the lectures
