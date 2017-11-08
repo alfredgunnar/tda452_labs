@@ -27,6 +27,7 @@ value (Add c h) | valueCard c + value h <= 21 = valueCard c + value h
                 | otherwise = valueCard c + value h
                   - (numberOfAces (Add c h) * 10)
 
+
 -- | A function that calculates the value of a rank.
 valueRank :: Rank -> Integer
 valueRank r | r == Jack || r == Queen || r == King = 10
@@ -40,9 +41,11 @@ valueRank r | r == Jack || r == Queen || r == King = 10
             | r == Numeric 9                               = 9
             | r == Numeric 10                              = 10
 
+
 -- | A function that calculates the value of a Card.
 valueCard :: Card -> Integer
 valueCard c = valueRank (rank c)
+
 
 -- | A function that calculates the number of aces in a given Hand.
 numberOfAces :: Hand -> Integer
