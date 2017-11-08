@@ -20,9 +20,9 @@ power1 n k = product (replicate(fromInteger k) (fromInteger n))
 -- Part 3
 power2 :: Integer -> Integer -> Integer
 power2 n k | k == 0 = 1
+           | k < 0 = power2 n (abs k)
            | odd k  = n * power2 n (k-1)
            | even k = power2 (n*n) (k `div` 2)
---           | k < 0 = power2 n (abs k)
 
 
 -- Part 4
@@ -68,6 +68,7 @@ test_powers = and (map prop_powers_tup values)
 
 
 -- D.
-prop_powers' :: Integer -> Integer -> Integer
+prop_powers' :: Integer -> Integer -> Bool
 prop_powers' n k = prop_powers n (abs k)
 -- abs k since function is only defined for k >= 0
+-- this solution is also used in the lectures
