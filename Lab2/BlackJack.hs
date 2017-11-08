@@ -20,6 +20,7 @@ empty = Empty
 
 
 -- | A function that calculates the value of a given hand.
+-- | Takes into account that Aces can be 1 or 11.
 value :: Hand -> Integer
 value Empty     = 0
 value (Add c h) | valueCard c + value h <= 21 = valueCard c + value h
