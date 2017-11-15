@@ -65,8 +65,8 @@ winner hG hB | gameOver hG && not (gameOver hB) || value hB >= value hG
 -- | Given two hands, <+ puts the first one on top of the second one
 (<+) :: Hand -> Hand -> Hand
 (<+) Empty h2 = h2
-(<+) (Add c Empty) h2 = (Add c h2)
-(<+) (Add c h1) h2 = (Add c (h1 <+ h2))
+(<+) (Add c Empty) h2 = Add c h2
+(<+) (Add c h1) h2 = Add c (h1 <+ h2)
 
 
 -- | <+ should be associative
@@ -98,15 +98,15 @@ allCardsInRank s = allCardsInRank' s 2  -- 2 is start number
 -- | Returns all cards from given integer representing the rank of a card
 allCardsInRank' :: Suit -> Integer -> Hand
 allCardsInRank' s num | num < 2   = allCardsInRank' s 2
-                      | num <= 10 = (Add (Card (Numeric num) s)
-                                      (allCardsInRank' s (num + 1)))
-                      | num == 11 = (Add (Card Jack s)
-                                      (allCardsInRank' s (num + 1)))
-                      | num == 12 = (Add (Card Queen s)
-                                      (allCardsInRank' s (num + 1)))
-                      | num == 13 = (Add (Card King s)
-                                      (allCardsInRank' s (num + 1)))
-                      | num >= 14 = (Add (Card Ace s) Empty)
+                      | num <= 10 = Add (Card (Numeric num) s)
+                                      (allCardsInRank' s (num + 1))
+                      | num == 11 = Add (Card Jack s)
+                                      (allCardsInRank' s (num + 1))
+                      | num == 12 = Add (Card Queen s)
+                                      (allCardsInRank' s (num + 1))
+                      | num == 13 = Add (Card King s)
+                                      (allCardsInRank' s (num + 1))
+                      | num >= 14 = Add (Card Ace s) Empty
 
 
 {-
@@ -134,7 +134,7 @@ allCardsInRank' s r             | r == Queen =
 -- | Given a deck and a hand, draw one card from the deck and put on the hand
 draw :: Hand -> Hand -> (Hand, Hand)
 draw Empty _        = error "draw: The deck is empty."
-draw (Add c h) hand = (h, (Add c hand))
+draw (Add c h) hand = (h, Add c hand)
 
 
 -- | Given a deck, the bank plays until a score of 16 or higher is achieved
@@ -153,7 +153,7 @@ playBank' deck bankHand | value bankHand' < 16 = playBank' deck' bankHand'
 -- | Shuffles a deck/hand
 shuffle :: StdGen -> Hand -> Hand
 shuffle g1 Empty = Empty
-shuffle g1 h = (Add pc (shuffle g2 remh))
+shuffle g1 h = Add pc (shuffle g2 remh)
     where
         (randn, g2) = randomR (1, size h) g1
         (pc, remh)  = pickCard h randn
@@ -162,7 +162,7 @@ shuffle g1 h = (Add pc (shuffle g2 remh))
 -- | Picks the n:th card in a deck and returns the card as well
 -- | as the remaining deck
 pickCard :: Hand -> Integer -> (Card, Hand)
-pickCard h n | n > 0 && n <= (size h) = pickCard' h n Empty
+pickCard h n | n > 0 && n <= size h = pickCard' h n Empty
              | otherwise              = error "pickCard: n is out of bounds."
 
 
