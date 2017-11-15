@@ -30,18 +30,10 @@ value (Add c h) | valueCard c + value h <= 21 = valueCard c + value h
 
 -- | A function that calculates the value of a Rank.
 valueRank :: Rank -> Integer
-valueRank r | r == Jack || r == Queen || r == King = 10
-            | r == Ace                             = 11
-            | r == Numeric 2                               = 2
-            | r == Numeric 3                               = 3
-            | r == Numeric 4                               = 4
-            | r == Numeric 5                               = 5
-            | r == Numeric 6                               = 6
-            | r == Numeric 7                               = 7
-            | r == Numeric 8                               = 8
-            | r == Numeric 9                               = 9
-            | r == Numeric 10                              = 10
-
+valueRank (Numeric r) = r
+valueRank Ace         = 11
+valueRank _           = 10
+            
 
 -- | A function that calculates the value of a Card.
 valueCard :: Card -> Integer
