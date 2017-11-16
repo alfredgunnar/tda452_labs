@@ -56,12 +56,6 @@ gameOver h = value h > 21
 
 -- | Given one Hand for the Guest and one for the Bank (in that order),
 -- | this function returns the winner.
--- winner :: Hand -> Hand -> Player
--- winner hG hB | gameOver hG && not (gameOver hB)
---               || value hB >= value hG && not (gameOver hB)
---                          = Bank
---              | otherwise = Guest
-
 winner hG hB | not (gameOver hG)
                  && gameOver hB
                 || not (gameOver hG)
