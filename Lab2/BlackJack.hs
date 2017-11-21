@@ -56,12 +56,11 @@ gameOver h = value h > 21
 
 -- | Given one Hand for the Guest and one for the Bank (in that order),
 -- | this function returns the winner.
-winner hG hB | not (gameOver hG)
-                 && gameOver hB
-                || not (gameOver hG)
-                  && value hG > value hB
+winner hG hB | not (gameOver hG) && gameOver hB ||
+               not (gameOver hG) && value hG > value hB
                          = Guest
-             | otherwise = Bank
+             | otherwise
+                         = Bank
 
 
 -- | Given two hands, <+ puts the first one on top of the second one
