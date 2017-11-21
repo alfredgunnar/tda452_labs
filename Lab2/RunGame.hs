@@ -36,8 +36,9 @@ gameLoop i deck guest =
        else do putStrLn "Draw another card? [y]"
                yn <- getLine
                if null yn || not (map toLower yn == "n")
-                 then do let (deck', guest') = iDraw i deck guest
-                         gameLoop i deck' guest'
+                 then do let (deck', (Add c' h')) = iDraw i deck guest
+                         putStrLn ("Drawn card: " ++ show c')
+                         gameLoop i deck' (Add c' h')
                  else finish i deck guest
 
 -- | Display the bank's final score and the winner.
