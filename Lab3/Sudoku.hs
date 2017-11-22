@@ -30,7 +30,7 @@ example =
 
 -- | allBlankSudoku is a sudoku with just blanks
 allBlankSudoku :: Sudoku
-allBlankSudoku = (Sudoku [[Nothing | _ <- [1..9]] | _ <-[1..9]])
+allBlankSudoku = Sudoku [[Nothing | _ <- [1..9]] | _ <-[1..9]]
 
 -- * A2
 
@@ -44,7 +44,7 @@ isSudoku s = listIsOfLength9 (rows s)
         listIsOfLength9 :: [a] -> Bool
         listIsOfLength9 l = length l == 9
 
-        isAllowedSudokuVal :: (Maybe Int) -> Bool
+        isAllowedSudokuVal :: Maybe Int -> Bool
         isAllowedSudokuVal Nothing = True
         isAllowedSudokuVal (Just n)  = n >= 1 && n <= 9
 
@@ -55,7 +55,7 @@ isSudoku s = listIsOfLength9 (rows s)
 isFilled :: Sudoku -> Bool
 isFilled s = isSudoku s && all isNumber (concat (rows s))
     where
-        isNumber :: (Maybe Int) -> Bool
+        isNumber :: Maybe Int -> Bool
         isNumber Nothing = False
         isNumber _       = True
 
@@ -67,14 +67,12 @@ isFilled s = isSudoku s && all isNumber (concat (rows s))
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
 printSudoku :: Sudoku -> IO ()
-printSudoku s = do putStrLn (concat (map sudokuLineToString (rows s)))
+printSudoku s = putStrLn (concatMap sudokuLineToString (rows s))
 
-sudokuLineToString :: [(Maybe Int)] -> String
-sudokuLineToString [] = "\n";
-sudokuLineToString (x:xs) = [maybeIntToChar x] ++ sudokuLineToString xs
+sudokuLineToString :: [Maybe Int] -> String
+sudokuLineToString = foldr ((:) . maybeIntToChar) "\n"
 
-
-maybeIntToChar :: (Maybe Int) -> Char
+maybeIntToChar :: Maybe Int -> Char
 maybeIntToChar Nothing  = '.'
 maybeIntToChar (Just n) = intToDigit n
 
@@ -87,10 +85,10 @@ readSudoku file = do text <- readFile file
                      return (Sudoku (map stringToListOfMaybeInts
                                           (lines text)))
    where
-     stringToListOfMaybeInts :: [Char] -> [Maybe Int]
-     stringToListOfMaybeInts s = map charToMaybeInt s
+     stringToListOfMaybeInts :: String -> [Maybe Int]
+     stringToListOfMaybeInts = map charToMaybeInt
 
-     charToMaybeInt :: Char -> (Maybe Int)
+     charToMaybeInt :: Char -> Maybe Int
      charToMaybeInt '.' = Nothing
      charToMaybeInt n | n >= '1' && n <= '9' = Just (digitToInt n)
                       | otherwise            =
@@ -103,7 +101,7 @@ readSudoku file = do text <- readFile file
 
 -- | cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
-cell =  frequency [(9,(elements [Nothing])), (1,rJustInt)]
+cell =  frequency [(9, elements [Nothing]), (1, rJustInt)]
 
 
 rJustInt :: Gen (Maybe Int)
@@ -127,7 +125,7 @@ instance Arbitrary Sudoku where
 
 -- | check that each generated Sudoku is a Sudoku
 prop_Sudoku :: Sudoku -> Bool
-prop_Sudoku s = isSudoku s
+prop_Sudoku = isSudoku
 
 
 -------------------------------------------------------------------------
@@ -139,7 +137,7 @@ type Block = [Maybe Int]
 
 -- | given a Block, check if that block does not contain the same digit twice
 isOkayBlock :: Block -> Bool
-isOkayBlock b = (length (nubBy equalSpecial b)) == 9
+isOkayBlock b = length (nubBy equalSpecial b) == 9
     where
         equalSpecial Nothing Nothing = False
         equalSpecial a b = a == b
@@ -149,19 +147,19 @@ isOkayBlock b = (length (nubBy equalSpecial b)) == 9
 
 -- | given a Sudoku, create a list of all blocks of that Sudoku
 blocks :: Sudoku -> [Block]
-blocks s = (rows s) ++ (transpose (rows s)) ++ extractBlocks (rows s)
+blocks s = rows s ++ transpose (rows s) ++ extractBlocks (rows s)
   where
     extractBlocks :: [[Maybe Int]] -> [Block]
     extractBlocks [] = []
     extractBlocks remainingRows =
-      extractBlocksFromRow ((take 3) remainingRows)
-        ++ (extractBlocks ((drop 3) remainingRows))
+      extractBlocksFromRow (take 3 remainingRows)
+        ++ extractBlocks (drop 3 remainingRows)
 
     extractBlocksFromRow :: [[Maybe Int]] -> [Block]
     extractBlocksFromRow [[],[],[]]   = []
     extractBlocksFromRow remain =
-            [concat ((map (take 3) (remain)))]
-              ++ extractBlocksFromRow (map (drop 3) (remain))
+            concatMap (take 3) remain
+              : extractBlocksFromRow (map (drop 3) remain)
 
 
 
