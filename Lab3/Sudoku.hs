@@ -130,8 +130,8 @@ prop_Sudoku = isSudoku
 
 -------------------------------------------------------------------------
 
+-- | a list that should contain 9 cells
 type Block = [Maybe Int]
-
 
 -- * D1
 
