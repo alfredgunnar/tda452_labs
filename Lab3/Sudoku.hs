@@ -174,3 +174,56 @@ prop_block_size s = length (blocks s) ==
 -- | and 3x3 blocks do not contain the same digit twice
 isOkay :: Sudoku -> Bool
 isOkay s = all isOkayBlock (blocks s)
+
+
+-----------------------------------------------------------------------------
+
+
+type Pos = (Int,Int)
+
+-- * E1
+
+-- | Given a sudoku, return the positions that are blank
+blanks :: Sudoku -> [Pos]
+blanks s = blanks' (rows s) 0
+
+blanks' :: [[Maybe Int]] -> Int -> [Pos]
+blanks' [] _ = []
+blanks' (r:rs) n = (findBlanksOnRow r n) ++ (blanks' rs (n+1))
+
+-- | Takes a list of sudoku elements and a row number to retrieve
+-- | the blank positions
+findBlanksOnRow :: [Maybe Int] -> Int -> [Pos]
+findBlanksOnRow [] _ = []
+findBlanksOnRow (x:xs) n | x == Nothing =
+                            [(n, 8 - length xs)] ++ findBlanksOnRow xs n
+                         | otherwise = findBlanksOnRow xs n
+
+-- * E2
+
+-- | given a list, and a tuple containing an index in the list and a new
+-- | value, update the given list with the new value at the given index
+(!!=) :: [a] -> (Int,a) -> [a]
+(!!=) [] _                               = []
+(!!=) list (n, _)     | n > length list = error "Too big index"
+(!!=) (x:xs) (n, val) | n == 0           = val:xs
+                      | n > 0            = x:(!!=) xs ((n-1), val)
+                      | otherwise = error "Too small index"
+
+
+prop_replace_element :: Eq a => [a] -> (Int, a) -> Bool
+prop_replace_element [] _ = True
+prop_replace_element list (n, val) | n > length list =
+    prop_replace_element list (n `mod` (length list), val)
+                                   | n < 0           =
+    prop_replace_element list ((-n), val)
+                                   | otherwise       =
+    length (list !!= (n, val)) == length list
+                       && validateParts (splitAt (n-1) list)
+                             (splitAt (n-1) (list !!= (n, val)))
+                             val
+
+validateParts :: Eq a => ([a], [a]) -> ([a], [a]) -> a -> Bool
+validateParts (l1, (y:ys1)) (l2, (y2:ys2)) val = (l1 == l2)
+                                                   && (val == y2)
+                                                   && (ys1 == ys2)
