@@ -2,7 +2,7 @@ import Test.QuickCheck
 import Data.Char hiding (isNumber)
 import Data.List
 import Data.Set (Set)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
 
 -------------------------------------------------------------------------
@@ -213,19 +213,19 @@ blanks s = blanks' (rows s) 0
 
 blanks' :: [[Maybe Int]] -> Int -> [Pos]
 blanks' [] _ = []
-blanks' (r:rs) n = (findBlanksOnRow r n) ++ (blanks' rs (n+1))
+blanks' (r:rs) n = findBlanksOnRow r n ++ blanks' rs (n+1)
 
 -- | Takes a list of sudoku elements and a row number to retrieve
 -- | the blank positions
 findBlanksOnRow :: [Maybe Int] -> Int -> [Pos]
 findBlanksOnRow [] _ = []
-findBlanksOnRow (Nothing:xs) n = [(n, 8 - length xs)] ++ findBlanksOnRow xs n
+findBlanksOnRow (Nothing:xs) n = (n, 8 - length xs) : findBlanksOnRow xs n
 findBlanksOnRow (x:xs) n       = findBlanksOnRow xs n
 
 -- | Takes a list of sudoku elements to retrieve the numbers on that row
 findNumsOnRow :: [Maybe Int] -> [Int]
 findNumsOnRow [] = []
-findNumsOnRow ((Just x):xs) = x:(findNumsOnRow xs)
+findNumsOnRow (Just x:xs) = x:findNumsOnRow xs
 findNumsOnRow (Nothing:xs) = findNumsOnRow xs
 
 -- * E2
@@ -236,7 +236,7 @@ findNumsOnRow (Nothing:xs) = findNumsOnRow xs
 (!!=) [] _                               = []
 (!!=) list (n, _)     | n > length list = error "Too big index"
 (!!=) (x:xs) (n, val) | n == 0           = val:xs
-                      | n > 0            = x:(!!=) xs ((n-1), val)
+                      | n > 0            = x:(!!=) xs (n-1, val)
                       | otherwise = error "Too small index"
 
 
@@ -246,9 +246,9 @@ findNumsOnRow (Nothing:xs) = findNumsOnRow xs
 prop_replace_element :: Eq a => [a] -> (Int, a) -> Bool
 prop_replace_element [] _ = True
 prop_replace_element list (n, val) | n > length list =
-    prop_replace_element list (n `mod` (length list), val)
+    prop_replace_element list (n `mod` length list, val)
                                    | n < 0           =
-    prop_replace_element list ((-n), val)
+    prop_replace_element list (-n, val)
                                    | otherwise       =
     length (list !!= (n, val)) == length list
                        && validateParts (splitAt (n-1) list)
@@ -259,7 +259,7 @@ prop_replace_element list (n, val) | n > length list =
 -- | the element has been replaced and that the rest of the list has remained
 -- | the same.
 validateParts :: Eq a => ([a], [a]) -> ([a], [a]) -> a -> Bool
-validateParts (l1, (y:ys1)) (l2, (y2:ys2)) val = (l1 == l2)
+validateParts (l1, y:ys1) (l2, y2:ys2) val = (l1 == l2)
                                                    && (val == y2)
                                                    && (ys1 == ys2)
 
@@ -269,13 +269,13 @@ validateParts (l1, (y:ys1)) (l2, (y2:ys2)) val = (l1 == l2)
 
 -- | Get the value of a certain position in a given Sudoku
 getVal :: Sudoku -> Pos -> Maybe Int
-getVal s (row, col) = ((rows s) !! row) !! col
+getVal s (row, col) = (rows s !! row) !! col
 
 -- | Given a Sudoku, a position, and a new cell value, updates the given
 -- | Sudoku at the given position with the new value
 update :: Sudoku -> Pos -> Maybe Int -> Sudoku
 update s (row,column) cell =
-  Sudoku (rows s !!= (row,((rows s) !! row) !!= (column,cell)))
+  Sudoku (rows s !!= (row,(rows s !! row) !!= (column,cell)))
 
 prop_update :: Sudoku -> Pos -> Maybe Int -> Bool
 prop_update sud (r,c) cell = newVal == cell
@@ -284,7 +284,7 @@ prop_update sud (r,c) cell = newVal == cell
         col = abs c `mod` 9
         newSud = update sud (row,col) cell
         newVal  = getVal newSud (row, col)
-        newSudWOVal = (rows newSud) !!=
+        newSudWOVal = rows newSud !!=
           (row, deleteAt col (rows newSud) !! row)
         origSudWOVal = rows sud !!=
           (row, deleteAt col (rows newSud) !! row)
@@ -303,25 +303,25 @@ deleteAt n list = l ++ r
 -- | legally written into that position. Returns empty list for non-blank
 -- | position.
 candidates :: Sudoku -> Pos -> [Int]
-candidates s (row,col) | isNumber (getVal s (row,col))
-                                   = []
-                       | otherwise =
-                         Set.toList (Set.fromList [1..9] `Set.difference` nonCandidates)
+candidates s (row,col)
+      | isNumber (getVal s (row,col)) = []
+      | otherwise        =
+          Set.toList (Set.fromList [1..9] `Set.difference` nonCandidates)
+
   where valuesFromRow    =
           Set.fromList (findNumsOnRow (rows s !! row))
         valuesFromColumn =
-          Set.fromList (findNumsOnRow ((transpose (rows s)) !! col))
+          Set.fromList (findNumsOnRow (transpose (rows s) !! col))
         valuesFromBlock  = Set.fromList
-          (findNumsOnRow ((extractBlocks (rows s)) !! (
+          (findNumsOnRow (extractBlocks (rows s) !! (
             (row `div` 3) * 3 + (col `div` 3))))
-        nonCandidates    = ((valuesFromRow `Set.union` valuesFromColumn)
-                            `Set.union` valuesFromBlock)
+        nonCandidates    = (valuesFromRow `Set.union` valuesFromColumn)
+                            `Set.union` valuesFromBlock
 
 prop_candidates :: Sudoku -> Pos -> Bool
 prop_candidates s (r,c) = isSudoku s
-                           && isOkay s
-                           && and
-                           (map (prop_update_valid_sudoku s (row,col)) cand)
+                         && isOkay s
+                         && all (prop_update_valid_sudoku s (row,col)) cand
   where cand = [Just n | n <- candidates s (row,col)]
         row = abs r `mod` 9
         col = abs c `mod` 9
@@ -349,13 +349,13 @@ solve s | isSudoku s && isOkay s  = solve' (Just s) b (candidates s (head b))
 solve' :: Maybe Sudoku -> [Pos] -> [Int] -> Maybe Sudoku
 solve' s [] (c:cs)      = s
 solve' s (b:bs) []      = Nothing
-solve' s (b:[]) (c:cs) | isOkay newSud = Just newSud
+solve' s ([b]) (c:cs) | isOkay newSud = Just newSud
                        | otherwise = nextCand
  where
    newSud = update (fromJust s) b (Just c)
    nextCand = solve' s [b] cs
 
-solve' s (b:bs) (c:cs) | nextPos == Nothing = nextCand
+solve' s (b:bs) (c:cs) | isNothing nextPos = nextCand
                        | otherwise = nextPos
   where
     newSud = update (fromJust s) b (Just c)
@@ -371,9 +371,8 @@ solve' s (b:bs) (c:cs) | nextPos == Nothing = nextCand
 readAndSolve :: FilePath -> IO ()
 readAndSolve f = do s <- readSudoku f
                     let sol = solve s
-                    if sol == Nothing
-                      then putStrLn "(no solution)"
-                      else printSudoku (fromJust sol)
+                    maybe (putStrLn "(no solution)")
+                          printSudoku (fromJust sol)
 
 -- * F3
 -- | checks, given two Sudokus, whether the first one is a solution (i.e. all
@@ -381,7 +380,8 @@ readAndSolve f = do s <- readSudoku f
 -- | is a solution of the second one (i.e. all digits in the second
 -- | sudoku are maintained in the first one)
 isSolutionOf :: Sudoku -> Sudoku -> Bool
-isSolutionOf solved notSolved | not (isOkay solved) && length (blanks solved) > 0
+isSolutionOf solved notSolved | not (isOkay solved)
+                                  && not (null (blanks solved))
                                           = False
                               | otherwise = checkEqualityOfAddedCells
                                   (concat (rows solved))
@@ -393,7 +393,7 @@ isSolutionOf solved notSolved | not (isOkay solved) && length (blanks solved) > 
 checkEqualityOfAddedCells :: [Maybe Int] -> [Maybe Int] -> Bool
 checkEqualityOfAddedCells [] [] = True
 checkEqualityOfAddedCells (x:xs) (y:ys)
-              | y == Nothing = checkEqualityOfAddedCells xs ys
+              | isNothing y = checkEqualityOfAddedCells xs ys
               | otherwise    = x == y && checkEqualityOfAddedCells xs ys
 
 
