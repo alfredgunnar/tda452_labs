@@ -120,7 +120,7 @@ sudoku = do rows <- vectorOf 9 (vectorOf 9 cell)
 instance Arbitrary Sudoku where
   arbitrary =
     do rows <- vectorOf 9 (vectorOf 9 cell)
-       let s = (Sudoku rows)
+       let s = Sudoku rows
        if isOkay s
          then return s
          else arbitrary
@@ -222,8 +222,7 @@ findBlanksOnRow [] _ = []
 findBlanksOnRow (Nothing:xs) n = [(n, 8 - length xs)] ++ findBlanksOnRow xs n
 findBlanksOnRow (x:xs) n       = findBlanksOnRow xs n
 
--- | Takes a list of sudoku elements and a row number to retrieve
--- | the numbers on that row
+-- | Takes a list of sudoku elements to retrieve the numbers on that row
 findNumsOnRow :: [Maybe Int] -> [Int]
 findNumsOnRow [] = []
 findNumsOnRow ((Just x):xs) = x:(findNumsOnRow xs)
@@ -286,15 +285,15 @@ prop_update sud (r,c) cell = newVal == cell
         newSud = update sud (row,col) cell
         newVal  = getVal newSud (row, col)
         newSudWOVal = (rows newSud) !!=
-          (row, deleteAt col ((rows newSud) !! row))
-        origSudWOVal = (rows sud) !!=
-          (row, deleteAt col ((rows newSud) !! row))
+          (row, deleteAt col (rows newSud) !! row)
+        origSudWOVal = rows sud !!=
+          (row, deleteAt col (rows newSud) !! row)
 
 
 -- | Helper function that removes elem at position n in a list
 deleteAt :: Int -> [a] -> [a]
 deleteAt n list = l ++ r
-  where (l, (_:r)) = splitAt n list
+  where (l, _:r) = splitAt n list
 
 
 
@@ -307,9 +306,9 @@ candidates :: Sudoku -> Pos -> [Int]
 candidates s (row,col) | isNumber (getVal s (row,col))
                                    = []
                        | otherwise =
-                         Set.toList ((Set.fromList [1..9]) `Set.difference` nonCandidates)
+                         Set.toList (Set.fromList [1..9] `Set.difference` nonCandidates)
   where valuesFromRow    =
-          Set.fromList (findNumsOnRow ((rows s) !! row))
+          Set.fromList (findNumsOnRow (rows s !! row))
         valuesFromColumn =
           Set.fromList (findNumsOnRow ((transpose (rows s)) !! col))
         valuesFromBlock  = Set.fromList
@@ -365,3 +364,42 @@ solve' s (b:bs) (c:cs) | nextPos == Nothing = nextCand
 
 
 -- * F2
+
+
+-- | Produces instructions for reading the Sudoku from the given file,
+-- | solving it, and printing the answer.
+readAndSolve :: FilePath -> IO ()
+readAndSolve f = do s <- readSudoku f
+                    let sol = solve s
+                    if sol == Nothing
+                      then putStrLn "(no solution)"
+                      else printSudoku (fromJust sol)
+
+-- * F3
+-- | checks, given two Sudokus, whether the first one is a solution (i.e. all
+-- | blocks are okay, there are no blanks), and also whether the first one
+-- | is a solution of the second one (i.e. all digits in the second
+-- | sudoku are maintained in the first one)
+isSolutionOf :: Sudoku -> Sudoku -> Bool
+isSolutionOf solved notSolved | not (isOkay solved) && length (blanks solved) > 0
+                                          = False
+                              | otherwise = checkEqualityOfAddedCells
+                                  (concat (rows solved))
+                                  (concat (rows notSolved))
+
+-- | The first list can have digits where the second list has "Nothing"
+-- | However, where the second list has a digit, the first list got to have
+-- | the same digit
+checkEqualityOfAddedCells :: [Maybe Int] -> [Maybe Int] -> Bool
+checkEqualityOfAddedCells [] [] = True
+checkEqualityOfAddedCells (x:xs) (y:ys)
+              | y == Nothing = checkEqualityOfAddedCells xs ys
+              | otherwise    = x == y && checkEqualityOfAddedCells xs ys
+
+
+-- * F4
+-- | says that the function solve is sound. Soundness means that every
+-- | supposed solution produced by solve actually is a valid solution
+-- | of the original problem.
+prop_SolveSound :: Sudoku -> Property
+prop_SolveSound s = isOkay s ==> isOkay (fromJust (solve s))
