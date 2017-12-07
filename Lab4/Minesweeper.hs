@@ -52,6 +52,7 @@ incrementAtPosition row col b = Board (rows b !!= (row,row''))
     cell  = row' !! col
     row'' = row' !!= (col,incrementCell cell)
 
+
 -- | Given a cell, this function increments the counter within.
 -- | If it contains a mine, nothing is done and a mine is returned.
 incrementCell :: Cell -> Cell
