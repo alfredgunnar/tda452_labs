@@ -5,13 +5,39 @@ import WebFudgets
 import HasteExtras(addStyleLink)
 import Haste.Graphics.Canvas
 
+data CellType = Mine | Nearby Int
+  deriving Show
+
+data Cell = C CellType Bool
+  deriving Show
+
+data Board = Board { rows :: [[Cell]] }
+  deriving Show
+
+c1 :: Cell
+c1 = C Mine True
+
 
 main :: IO ()
 main = do addStyleLink "minesweeper.css"
           runF (h1F (textF "Minesweeper") >+ game >+ contribution)
 
-game = divF (tableF 3 buttonsF)
-data CalculatorButton
+game = divF (tableF 5 buttonsF)
+
+buttonsF = listF boardToButtons
+
+boardToButtons = [(val, buttonF (cellToButtonStr c1)) | val <- [1..20]]
+
+cellToButtonStr :: Cell -> String
+cellToButtonStr (C _          False) = " "
+cellToButtonStr (C Mine       _)    = "¤"
+cellToButtonStr (C (Nearby n) _)    = show n
+
+
+
+--(3, textF "3")
+
+{-data CalculatorButton
      = Plus | Minus | Times | Div
      | Enter | Clear | Digit Int
      deriving Eq
@@ -31,6 +57,6 @@ opLabel Times = "×"
 opLabel Div   = "÷"
 opLabel Enter = "Ent"
 opLabel Clear = "C"
-
+-}
 
 contribution = textF "Copyright 2017. By Alfred and Martin."
