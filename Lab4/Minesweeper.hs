@@ -47,7 +47,7 @@ emptyBoard rows cols =
   Board [[(C (Nearby 0) False) | _ <- [1..cols]] | _ <-[1..rows]]
 
 -- | Given a number of columns and a number of rows, this function gives
--- | a generator for a board with bombs but without any nearby markers.
+-- | a generator for a board.
 board :: Int -> Int -> Gen Board
 board rows cols = do rows <- vectorOf rows (vectorOf cols cell)
                      let b = setNearbyMarkers (Board rows)
