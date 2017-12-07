@@ -13,7 +13,7 @@ data CellType = Mine | Nearby Int
   deriving (Eq,Show)
 
 data Cell = C CellType Bool
-  deriving (Show)
+  deriving (Eq,Show)
 
 data Board = Board { rows :: [[Cell]] }
   deriving (Show)

@@ -1,18 +1,9 @@
 module Main where
 
---import Minesweeper
+import Minesweeper
 import WebFudgets
 import HasteExtras(addStyleLink)
 import Haste.Graphics.Canvas
-
-data CellType = Mine | Nearby Int
-  deriving (Eq,Show)
-
-data Cell = C CellType Bool
-  deriving (Eq,Show)
-
-data Board = Board { rows :: [[Cell]] }
-  deriving (Eq,Show)
 
 c1 :: Cell
 c1 = C Mine True
