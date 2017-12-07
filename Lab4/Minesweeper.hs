@@ -8,7 +8,10 @@ import Data.Char hiding (isNumber)
 import Math.Geometry.Grid
 import Math.Geometry.Grid.Octagonal
 
-data Cell = Mine | Nearby Int
+data CellType = Mine | Nearby Int
+  deriving (Show)
+
+data Cell = C CellType Bool
   deriving (Show)
 
 data Board = Board { rows :: [[Cell]] }
@@ -25,28 +28,30 @@ boardLineToString :: [Cell] -> String
 boardLineToString = foldr ((:) . cellToChar) "\n"
 
 cellToChar :: Cell -> Char
-cellToChar Mine  = 'M'
-cellToChar (Nearby 0) = '.'
-cellToChar (Nearby n) = intToDigit n
+cellToChar (C Mine _)       = 'M'
+cellToChar (C (Nearby 0) _) = '.'
+cellToChar (C (Nearby n) _) = intToDigit n
 
 
 -----------------------------------------------------------------------------
 -- * Generating Board
 
 cell :: Gen Cell
-cell = frequency [ (2, return Mine)
-                 , (8, return (Nearby 0))]
+cell = frequency [ (2, return (C Mine False))
+                 , (8, return (C (Nearby 0) False))]
 
 -- | Given a number of columns and a number of rows, this function
 -- | generates a board without any bombs.
 emptyBoard :: Int -> Int -> Board
-emptyBoard rows cols = Board [[Nearby 0 | _ <- [1..cols]] | _ <-[1..rows]]
+emptyBoard rows cols =
+  Board [[(C (Nearby 0) False) | _ <- [1..cols]] | _ <-[1..rows]]
 
 -- | Given a number of columns and a number of rows, this function gives
 -- | a generator for a board with bombs but without any nearby markers.
 board :: Int -> Int -> Gen Board
 board rows cols = do rows <- vectorOf rows (vectorOf cols cell)
-                     return (Board rows)
+                     let b = setNearbyMarkers (Board rows)
+                     return b
 
 -- | Given a board, this function updates the nearby cells of every mine
 -- | with the correct numbers.
@@ -65,13 +70,13 @@ findMinesOnRows (r:rs) b = findMinesOnRows rs (findMinesOnRow row_num r b)
 -- | the neighbours of every mine in the current row.
 findMinesOnRow :: Int -> [Cell] -> Board -> Board
 findMinesOnRow row_num [] b        = b
-findMinesOnRow row_num (Mine:cs) b =
+findMinesOnRow row_num ((C Mine click):cs) b =
   findMinesOnRow row_num cs (
     incrementAtPositions (neighbours grid (row_num,col_num)) b
     )
 
   where
-    col_num = length (rows b !! 1) - length (Mine:cs)
+    col_num = length (rows b !! 1) - length ((C Mine click):cs)
     grid = rectOctGrid (length (rows b)) (length (rows b !! 1))
 
 findMinesOnRow row_num (c:cs) b    = findMinesOnRow row_num cs b
@@ -96,5 +101,5 @@ incrementAtPosition row col b = Board (rows b !!= (row,row''))
 -- | Given a cell, this function increments the counter within.
 -- | If it contains a mine, nothing is done and a mine is returned.
 incrementCell :: Cell -> Cell
-incrementCell Mine = Mine
-incrementCell (Nearby n) = Nearby (n+1)
+incrementCell (C Mine b) = (C Mine b)
+incrementCell (C (Nearby n) b) = (C (Nearby (n+1)) b)
