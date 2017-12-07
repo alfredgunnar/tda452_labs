@@ -6,27 +6,46 @@ import HasteExtras(addStyleLink)
 import Haste.Graphics.Canvas
 
 data CellType = Mine | Nearby Int
-  deriving Show
+  deriving (Eq,Show)
 
 data Cell = C CellType Bool
-  deriving Show
+  deriving (Eq,Show)
 
 data Board = Board { rows :: [[Cell]] }
-  deriving Show
+  deriving (Eq,Show)
 
 c1 :: Cell
 c1 = C Mine True
+c2 = [C Mine True,C (Nearby 2) True,C (Nearby 0) True,C Mine False]
 
+b1 = Board { rows = [[C Mine True,C (Nearby 1) True,C (Nearby 1) True],
+                      [C (Nearby 0) True,C Mine False,C Mine False]]}
+
+boardToCellList :: Board -> [Cell]
+boardToCellList b = concat (rows b)
+
+boardWidth :: Board -> Int
+boardWidth b = length (head (rows b))
 
 main :: IO ()
 main = do addStyleLink "minesweeper.css"
-          runF (h1F (textF "Minesweeper") >+ game >+ contribution)
+          runF (h1F (textF "Mine sweeper") >+ game >+ contribution)
 
-game = divF (tableF 5 buttonsF)
-
+game = divF (tableF (boardWidth b1) buttonsF)
+{-
 buttonsF = listF boardToButtons
 
-boardToButtons = [(val, buttonF (cellToButtonStr c1)) | val <- [1..20]]
+boardToButtons = [(val, buttonF (cellToButtonStr cell))
+  | val <- [1..(length c2)],
+    cell <- c2
+-}
+
+buttonsF = listF (cellsToButtons (boardToCellList b1))
+
+cellsToButtons []     = []
+cellsToButtons (c:cs) = (c, buttonF (cellToButtonStr c)) : cellsToButtons cs
+
+-- [(val, s) | val <- [1..5], s <- ['a'..'b']]
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          False) = " "
