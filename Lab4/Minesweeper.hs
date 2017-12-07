@@ -4,12 +4,13 @@ import Test.QuickCheck
 import Util
 import Data.Char hiding (isNumber)
 
--- run "cable install grid" for this to work, then restart ghci
+-- run "cabal install grid" for this to work, then restart ghci
+-- use "haste-cabal install grid" when using haste
 import Math.Geometry.Grid
 import Math.Geometry.Grid.Octagonal
 
 data CellType = Mine | Nearby Int
-  deriving (Show)
+  deriving (Eq,Show)
 
 data Cell = C CellType Bool
   deriving (Show)
@@ -123,9 +124,9 @@ incrementCell (C (Nearby n) b) = (C (Nearby (n+1)) b)
 -- | Just Board if everything went okay, otherwise Nothing is returned
 open :: Int -> Int -> Board -> Maybe Board
 open row col b | ct == Mine = Nothing
-               | ct == Nearby 0 = explodeBoardAt row col b
+               | ct == Nearby 0 = Just (explodeBoardAt row col b)
                | otherwise =
-                 setCellAt row col (clicked (getCellAt row col b)) b
+                 Just (setCellAt row col (clicked (getCellAt row col b)) b)
   where
     ct = cellTypeAt row col b
 
@@ -139,5 +140,6 @@ cellType (C ct _) = ct
 clicked :: Cell -> Cell
 clicked (C ct _) = (C ct True)
 
+-- TODO
 explodeBoardAt :: Int -> Int -> Board -> Board
 explodeBoardAt row col b = b
