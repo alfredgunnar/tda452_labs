@@ -36,9 +36,11 @@ cellToChar (C (Nearby n) _) = intToDigit n
 -----------------------------------------------------------------------------
 -- * Generating Board
 
-cell :: Gen Cell
-cell = frequency [ (2, return (C Mine False))
-                 , (8, return (C (Nearby 0) False))]
+-- | Given an int between 0-10 this generates a cell where the int represents
+-- | the probability of the cell being a mine.
+cell :: Int -> Gen Cell
+cell n = frequency [ (n, return (C Mine False))
+                   , (10-n, return (C (Nearby 0) False))]
 
 -- | Given a number of columns and a number of rows, this function
 -- | generates a board without any bombs.
@@ -46,12 +48,13 @@ emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols =
   Board [[(C (Nearby 0) False) | _ <- [1..cols]] | _ <-[1..rows]]
 
--- | Given a number of columns and a number of rows, this function gives
+-- | Given a number of columns, a number of rows and the probability of mines
+-- | represented by an int between 0-10 this function gives
 -- | a generator for a board.
-board :: Int -> Int -> Gen Board
-board rows cols = do rows <- vectorOf rows (vectorOf cols cell)
-                     let b = setNearbyMarkers (Board rows)
-                     return b
+board :: Int -> Int -> Int -> Gen Board
+board rows cols prob = do rows <- vectorOf rows (vectorOf cols (cell prob))
+                          let b = setNearbyMarkers (Board rows)
+                          return b
 
 -- | Given a board, this function updates the nearby cells of every mine
 -- | with the correct numbers.
