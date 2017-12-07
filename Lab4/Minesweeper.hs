@@ -16,7 +16,7 @@ data Cell = C CellType Bool
   deriving (Eq,Show)
 
 data Board = Board { rows :: [[Cell]] }
-  deriving (Show)
+  deriving (Eq,Show)
 
 
 -----------------------------------------------------------------------------
