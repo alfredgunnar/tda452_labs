@@ -20,17 +20,17 @@ instance Arbitrary Cell where
 emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols = Board [[Nearby 0 | _ <- [1..cols]] | _ <-[1..rows]]
 
-board5x5 :: Gen Board
-board5x5 =
+-- board5x5 :: Gen Board
+-- board5x5 =
 
 -- | Given a position of row number and col number,
 -- | this increments the counter in that cell or does nothing if the cell
 -- | is a mine.
-incrementAtPosition :: Int -> Int -> Board -> Board
-incrementAtPosition row col b =
+-- incrementAtPosition :: Int -> Int -> Board -> Board
+-- incrementAtPosition row col =
 
 -- | Given a cell, this function increments the counter within.
 -- | If it contains a mine, nothing is done and a mine is returned.
 incrementCell :: Cell -> Cell
 incrementCell Mine = Mine
-incrementCell Nearby n = Nearby (n+1)
+incrementCell (Nearby n) = Nearby (n+1)
