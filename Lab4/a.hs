@@ -8,22 +8,25 @@ data Interface = Interface
   , iOpen     :: Int -> Int -> Board -> Maybe Board
   }
 
+--newBoardElem :: MonadIO m => Board -> m Elem
+newBoardElem b = do eleme <- newElem "div"
+                    child <- sequence [newElem "p",newElem "p"]
+                    setChildren eleme child --(newBoardElem' (rows b))
+                    return eleme
 
-newBoardElem b = do parent <- newElem "div"
-                    children <- sequence (newBoardElem' (rows b))
-                    setChildren parent children --(newBoardElem' (rows b))
-                    return parent
-
-
-newBoardElem' []     = []
-newBoardElem' (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' rs) --children : (newBoardElem' rs)
-  where
-    children = map newCellElem r
-
-
-newCellElem c = newElem "input"
-                      `with` [attr "type" =: "button",
-                              attr "value" =: cellToButtonStr c]
+--newBoardElem' :: [[Cell]] -> [m Elem]
+--newBoardElem' []     = []
+--newBoardElem' (r:rs) = do el <- (newElem "p")
+--                          return el : (newBoardElem' rs) --children : (newBoardElem' rs)
+  {-where
+    children = map newCellElem r-}
+--
+--
+--newCellElem :: Cell -> m Elem
+--newCellElem c = do btnToken <- newTextElem (cellToButtonStr c)
+--                   newElem "input"
+--                      [attr "type" =: "button",
+--                       attr "value" =: btnToken]
 
 b1 = Board { rows = [[C Mine True,C (Nearby 1) True,C (Nearby 1) True],
                      [C (Nearby 0) True,C Mine False,C Mine False]]}
@@ -34,11 +37,9 @@ main = do hello <- newTextElem "Hello"
           appendChild header hello
           appendChild documentBody header
 
-          gameDiv <- newElem "div"
-          appendChild documentBody gameDiv
-
           gameBoard <- newBoardElem b1
-          appendChild gameDiv gameBoard
+          appendChild documentBody gameBoard
+
 
           rowinput <- newElem "input"
             `with` [attr "id" =: "row"]
@@ -67,22 +68,10 @@ main = do hello <- newTextElem "Hello"
           appendChild documentBody button
           appendChild documentBody output
 
-          let reloadBoard r c b = do clearChildren gameDiv
-                                     gameBoard <- newBoardElem b1
-                                     appendChild gameDiv gameBoard
-
-                                     --row <- newTextElem (show r)
-                                     --col <- newTextElem (show c)
-                                     --appendChild gameDiv row
-
-
           let update _ = do row <- getProp rowinput "value"
                             col <- getProp colinput "value"
                             let r = read row :: Int -- can fail!
                             let c = read col :: Int -- can fail!
-
-                            reloadBoard r c gameBoard
-
                             setProp output "value" ("(" ++ show r ++ "," ++ show c ++ ")")
 
           onEvent button Click update
