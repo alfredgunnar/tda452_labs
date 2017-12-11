@@ -3,6 +3,7 @@ module Minesweeper where
 import Test.QuickCheck
 import Util
 import Data.Char hiding (isNumber)
+import Data.Maybe (fromJust, isNothing)
 
 -- run "cabal install grid" for this to work, then restart ghci
 -- use "haste-cabal install grid" when using haste
@@ -22,17 +23,32 @@ data Board = Board { rows :: [[Cell]] }
 -----------------------------------------------------------------------------
 -- * Printing Board
 
+-- | Takes a function that converts a list of cells to a string and a board
+printBoardWrapper :: ([Cell] -> String) -> Board -> IO ()
+printBoardWrapper f b = putStrLn (concatMap f (rows b))
+
 printBoard :: Board -> IO ()
-printBoard b = putStrLn (concatMap boardLineToString (rows b))
+printBoard b = printBoardWrapper boardLineToString b
+
+-- | Prints board and takes into account if cells are clicked or not
+printBoardClick :: Board -> IO ()
+printBoardClick b = printBoardWrapper boardLineToStringClick b
 
 boardLineToString :: [Cell] -> String
 boardLineToString = foldr ((:) . cellToChar) "\n"
 
+boardLineToStringClick :: [Cell] -> String
+boardLineToStringClick = foldr ((:) . cellToCharClick) "\n"
+
 cellToChar :: Cell -> Char
-cellToChar (C Mine _)       = 'M'
+cellToChar (C Mine _)       = '¤'
 cellToChar (C (Nearby 0) _) = '.'
 cellToChar (C (Nearby n) _) = intToDigit n
 
+-- | Converts a cell to a char and takes into account if it is clicked or not
+cellToCharClick :: Cell -> Char
+cellToCharClick (C ct clicked) | not clicked = 'X'
+                               | otherwise = cellToChar (C ct clicked)
 
 -----------------------------------------------------------------------------
 -- * Generating Board
@@ -87,14 +103,19 @@ findMinesOnRow :: Int -> [Cell] -> Board -> Board
 findMinesOnRow row_num [] b        = b
 findMinesOnRow row_num ((C Mine click):cs) b =
   findMinesOnRow row_num cs (
-    incrementAtPositions (neighbours grid (row_num,col_num)) b
+      incrementAtPositions (cellNeighbours row_num col_num b) b
     )
-
   where
     col_num = length (rows b !! 1) - length ((C Mine click):cs)
-    grid = rectOctGrid (length (rows b)) (length (rows b !! 1))
 
 findMinesOnRow row_num (c:cs) b    = findMinesOnRow row_num cs b
+
+-- | Given row, col and board this function returns a list of the neighbour
+-- | positions.
+cellNeighbours :: Int -> Int -> Board -> [(Int,Int)]
+cellNeighbours row col b = neighbours grid (row,col)
+  where
+    grid = rectOctGrid (length (rows b)) (length (rows b !! 1))
 
 -- | Given a list of positions (row,col) and a board this function increments
 -- | the cells at the positions if they are not mines.
@@ -126,7 +147,7 @@ open :: Int -> Int -> Board -> Maybe Board
 open row col b | ct == Mine = Nothing
                | ct == Nearby 0 = Just (explodeBoardAt row col b)
                | otherwise =
-                 Just (setCellAt row col (clicked (getCellAt row col b)) b)
+                 Just (setCellAt row col (click (getCellAt row col b)) b)
   where
     ct = cellTypeAt row col b
 
@@ -137,9 +158,24 @@ cellType :: Cell -> CellType
 cellType (C ct _) = ct
 
 -- | Takes a cell and sets its boolean value to true
-clicked :: Cell -> Cell
-clicked (C ct _) = (C ct True)
+click :: Cell -> Cell
+click (C ct _) = (C ct True)
 
--- TODO
+isClicked :: Cell -> Bool
+isClicked (C _ b) = b
+
+
 explodeBoardAt :: Int -> Int -> Board -> Board
-explodeBoardAt row col b = b
+explodeBoardAt row col b
+  | cellTypeAt row col b == Mine = b
+  | (cellTypeAt row col b == Nearby 0 && not (isClicked (getCellAt row col b)))
+  = explodeBoardAtPositions nb
+    (setCellAt row col (click (getCellAt row col b)) b)
+  | otherwise = (setCellAt row col (click (getCellAt row col b)) b)
+  where
+    nb = cellNeighbours row col b
+
+explodeBoardAtPositions :: [(Int,Int)] -> Board -> Board
+explodeBoardAtPositions [] b = b
+explodeBoardAtPositions ((row,col):ps) b =
+  explodeBoardAtPositions ps (explodeBoardAt row col b)
