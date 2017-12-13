@@ -60,7 +60,7 @@ runGame i =
 
       gameDiv <- newElem "div"
 
-      let newCellElem c = do newElem "input"
+      let newCellElem c = do e <- newElem "input"
                               `with` [attr "type" =: "button",
                                     attr "value" =: cellToButtonStr c,
                                     style "width" =: "30px",
@@ -68,6 +68,8 @@ runGame i =
                                     --style "background-color" =: "yellow",
                                     --style "background-color" =: "yellow",
                                     style "background-color" =: "lightyellow" ]
+                             --onEvent button Click update
+                             return e
 
       let newBoardElem b = do parent <- newElem "div"
                               children <- sequence (newBoardElem' newCellElem (rows b))
