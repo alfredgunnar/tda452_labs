@@ -44,33 +44,24 @@ runGame i =
    -- Definition of variables
    do hello <- newTextElem "Minesweeper Deluxe Edition"
       header <- newElem "h1"
+        `with` [style "font-family" =: "Comic Sans MS",
+                style "text-align" =: "center"]
+      appendChild header hello
 
-      rowinput <- newElem "input"
-       `with` [attr "id" =: "row"]
+      --output <- newElem "input"
 
-      rowlabeltxt <- newTextElem "Row"
-      rowlabel <- newElem "label"
-       `with` [attr "for" =: "row"]
-
-      colinput <- newElem "input"
-       `with` [attr "id" =: "col"]
-      collabeltxt <- newTextElem "Col"
-      collabel <- newElem "label"
-       `with` [attr "for" =: "col"]
-
-      output <- newElem "input"
-
-      button <- newElem "input"
-                  `with` [attr "type" =: "button",
-                          attr "value" =: "Update"]
-
-      b <- (iBoard i 10 10 1)
+      b <- (iBoard i 10 10 8)
       globalBoard <- newIORef b
 
-      let gameDivWidth = show (30 * (iWidth i b)) ++ "px"
+      let gameDivWidth = show (2 * (iWidth i b)) ++ "em"
 
       gameDiv <- newElem "div"
-                  `with` [style "width" =: gameDivWidth ]
+                  `with` [style "width" =: gameDivWidth,
+                          style "border-top"    =: "2px solid #7B7B7B",
+                          style "border-left"   =: "2px solid #7B7B7B",
+                          style "border-right"  =: "2px solid #FFFFFF",
+                          style "border-bottom" =: "2px solid #FFFFFF",
+                          style "margin" =: "auto"]
 
       let onEventForElems event handler []       = do return ()
       let onEventForElems event handler (e:es) = (onEvent e event handler) : onEventForElems event handler es
@@ -107,7 +98,7 @@ runGame i =
                                  let boardCells = concat (rows b')
 
                                  updateProperty gameBtns boardCells
-                                 setProp output "value" "flag!"
+                                 --setProp output "value" "flag!"
                                  writeIORef globalBoard b'
 
       let newCellElem row col c = do e <- newElem "input"
@@ -115,9 +106,14 @@ runGame i =
                                              attr "value" =: cellToButtonStr c,
                                              attr "row" =: show row,
                                              attr "col" =: show col,
-                                             style "width" =: "30px",
-                                             style "height" =: "30px",
-                                             style "background-color" =: "lightyellow" ]
+                                             style "width" =: "2em",
+                                             style "height" =: "2em",
+                                             style "border-top"    =: "2px solid #FFFFFF",
+                                             style "border-left"   =: "2px solid #FFFFFF",
+                                             style "border-right"  =: "2px solid #7B7B7B",
+                                             style "border-bottom" =: "2px solid #7B7B7B",
+                                             style "background-color" =: "#BDBDBD",
+                                             style "font-size"  =: "inherit"]
                                      onEvent e Click (clickDetect row col)
                                      onEvent e Wheel (setFlag row col)
                                      return e
@@ -125,19 +121,63 @@ runGame i =
 
       gameBoard <- getCellElems newCellElem b
 
-      appendChild header hello
-      appendChild documentBody header
+      container <- newElem "div"
+        `with` [style "margin" =: "auto",
+                style "width"  =: "80%",
+                style "font-size"  =: "100%"
+                ]
 
-      appendChild documentBody gameDiv
+      gameContainer <- newElem "div"
+        `with` [style "text-align" =: "center",
+                style "margin" =: "auto",
+                style "padding" =: "10px",
+                style "background-color" =: "#BDBDBD",
+                style "width"  =: gameDivWidth,
+                style "height"  =: "100%",
+                style "border"  =: "2px solid #7B7B7B",
+                style "font-size"  =: "100%"
+
+                ]
+
+      gameDivTop <- newElem "div"
+        `with` [style "text-align" =: "center",
+                style "margin" =: "auto",
+                style "width"  =: gameDivWidth,
+                style "border-top"    =: "2px solid #7B7B7B",
+                style "border-left"   =: "2px solid #7B7B7B",
+                style "border-right"  =: "2px solid #FFFFFF",
+                style "border-bottom" =: "2px solid #FFFFFF",
+                style "height"  =: "4em",
+                style "background-color"  =: "#C0C0C0",
+                style "font-size"  =: "100%"
+                ]
+
+      smileyBtn <- newElem "button"
+        `with` [style "margin-top" =: "1.2em",
+                style "padding" =: "2px 0px 0px",
+                style "width"  =: "26px",
+                style "height"  =: "26px",
+                style "font-size"  =: "100%",
+                style "border-top"    =: "2px solid #FFFFFF",
+                style "border-left"   =: "2px solid #FFFFFF",
+                style "border-right"  =: "2px solid #7B7B7B",
+                style "border-bottom" =: "2px solid #7B7B7B",
+                style "background-color" =: "#BDBDBD",
+                style "font-size"  =: "inherit"
+                ]
+      smiley <- newElem "img"
+        `with` [attr "src" =: "smiley.png",
+                attr "alt" =: ":)"]
+
+      appendChild documentBody container
+      appendChild container header
+      appendChild container gameContainer
+      appendChild gameContainer gameDivTop
+      appendChild gameDivTop smileyBtn
+      appendChild smileyBtn smiley
+      appendChild gameContainer gameDiv
       setChildren gameDiv gameBoard
-      appendChild rowlabel rowlabeltxt
-      appendChild collabel collabeltxt
-      appendChild documentBody rowlabel
-      appendChild documentBody rowinput
-      appendChild documentBody collabel
-      appendChild documentBody colinput
-      appendChild documentBody button
-      appendChild documentBody output
+      --appendChild documentBody output
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
