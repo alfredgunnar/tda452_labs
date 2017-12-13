@@ -69,6 +69,17 @@ runGame i =
                      `with` [style "width" =: gameDivWidth]
       setClass gameContainer "gameContainer" True
 
+      radioMark <- newElem "input"
+        `with` [attr "type" =: "radio",
+                attr "name" =: "clickType",
+                attr "value" =: "mark",
+                attr "checked" =: ""]
+
+      radioFlag <- newElem "input"
+        `with` [attr "type" =: "radio",
+                attr "name" =: "clickType",
+                attr "value" =: "flag"]
+
       let announceWinner = do e <- newTextElem "WINNER!"
                               w <- newElem "p"
                               appendChild w e
@@ -108,7 +119,9 @@ runGame i =
                                      else return ()
 
 
-      let setFlag row col _ = do gameOver <- readIORef globalGameOver
+      let setFlag row col _ = do --if
+
+                                 gameOver <- readIORef globalGameOver
                                  if not gameOver
                                    then do board <- readIORef globalBoard
                                            let b' = iMarkAt i row col board
@@ -161,16 +174,7 @@ runGame i =
       radioContainer <- newElem "div"
       setClass radioContainer "radioContainer" True
 
-      radioMark <- newElem "input"
-        `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
-                attr "value" =: "mark",
-                attr "checked" =: ""]
 
-      radioFlag <- newElem "input"
-        `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
-                attr "value" =: "flag"]
 
       --setAttr documentBody "oncontextmenu" "return false;"
 
