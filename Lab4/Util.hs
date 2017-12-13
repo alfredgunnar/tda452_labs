@@ -9,3 +9,15 @@ module Util where
 (!!=) (x:xs) (n, val) | n == 0           = val:xs
                       | n > 0            = x:(!!=) xs (n-1, val)
                       | otherwise = error "Too small index"
+
+-- | Extension to the map function where the parameter function takes an int
+-- | representing the current list index
+mapi :: (a -> Int -> b) -> [a] -> [b]
+mapi f l = mapi' 0 f l
+  where
+    mapi' ::  Int -> (a -> Int -> b) -> [a] -> [b]
+    mapi' i f []     = []
+    mapi' i f (x:xs) = ((f x i):(mapi' (i+1) f xs))
+
+test_mapi :: a -> Int -> (a,Int)
+test_mapi x n = (x,n)
