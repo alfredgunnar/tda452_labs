@@ -1,8 +1,13 @@
+body {
+  background-image: url("http://www.altocumulus.org/~hallgren/P/o023.jpg");
+}
+
 .container, .radioContainer {
   margin: auto;
   width: 90%;
   font-size: 100%;
   font-family: "Comic Sans MS"
+  background-image: url("http://www.altocumulus.org/~hallgren/P/Texture0106.jpg");
 }
 
 h1 {
