@@ -49,11 +49,6 @@ runGame i =
       header <- newElem "h1"
       appendChild header hello
 
-      output <- newElem "button"
-        `with` [style "width" =: "200px",
-                style "height" =: "100px",
-                style "background-color" =: "lightblue"]
-
       b <- (iBoard i 15 20 15)
       globalBoard <- newIORef b
 
@@ -69,16 +64,32 @@ runGame i =
                      `with` [style "width" =: gameDivWidth]
       setClass gameContainer "gameContainer" True
 
-      radioMark <- newElem "input"
+
+      radioOpen <- newElem "input"
         `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
-                attr "value" =: "mark",
+                attr "name" =: "radio",
+                attr "id" =: "radioOpen",
+                attr "value" =: "open",
                 attr "checked" =: ""]
+      setClass radioOpen "clicked" True
 
       radioFlag <- newElem "input"
         `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
+                attr "name" =: "radio",
+                attr "id" =: "radioFlag",
                 attr "value" =: "flag"]
+
+      let markClicked _ = do setClass radioOpen "clicked" True
+                             setClass radioFlag "clicked" False
+
+      let flagClicked _ = do setClass radioFlag "clicked" True
+                             setClass radioOpen "clicked" False
+
+      onEvent radioOpen Click markClicked
+      onEvent radioFlag Click flagClicked
+
+
+
 
       let announceWinner = do e <- newTextElem "WINNER!"
                               w <- newElem "p"
@@ -94,51 +105,38 @@ runGame i =
                              appendChild gameContainer l
                              writeIORef globalGameOver True
 
+      let clickOpen row col board = do let b' = iOpen i row col board
+                                       if not (isNothing b')
+                                         then do gameBtns <- (getChildren gameDiv)
+                                                 let b'' = (fromJust b')
+                                                 let boardCells = concat (rows b'')
+                                                 updateProperty gameBtns boardCells
+                                                 writeIORef globalBoard (fromJust b')
+                                                 if (iHasWon i (fromJust b'))
+                                                   then announceWinner
+                                                   else return ()
+                                         else announceLoser
+
+      let setFlag row col board = do let b' = iMarkAt i row col board
+                                     gameBtns <- (getChildren gameDiv)
+                                     let boardCells = concat (rows b')
+                                     updateProperty gameBtns boardCells
+                                     writeIORef globalBoard b'
+
       let clickDetect row col _ = do gameOver <- readIORef globalGameOver
                                      if not gameOver
-                                     then do board <- readIORef globalBoard
-                                             let b' = iOpen i row col board
+                                       then do board <- readIORef globalBoard
+                                               ret <- hasClass radioOpen "clicked"
+                                               if ret
+                                                 then clickOpen row col board
+                                                 else setFlag row col board
+                                       else return ()
 
-
-
-                                             if not (isNothing b')
-                                               then do gameBtns <- (getChildren gameDiv)
-
-                                                       let b'' = (fromJust b')
-                                                       let boardCells = concat (rows b'')
-
-                                                       updateProperty gameBtns boardCells
-
-                                                       writeIORef globalBoard (fromJust b')
-
-                                                       if (iHasWon i (fromJust b'))
-                                                         then announceWinner
-                                                         else return ()
-
-                                               else announceLoser
-                                     else return ()
-
-
-      let setFlag row col _ = do --if
-
-                                 gameOver <- readIORef globalGameOver
-                                 if not gameOver
-                                   then do board <- readIORef globalBoard
-                                           let b' = iMarkAt i row col board
-                                           gameBtns <- (getChildren gameDiv)
-
-                                           let boardCells = concat (rows b')
-
-                                           updateProperty gameBtns boardCells
-                                           --setProp output "value" "flag!"
-                                           writeIORef globalBoard b'
-                                   else return ()
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
                                              attr "value" =: cellToButtonStr c]
                                      onEvent e Click (clickDetect row col)
-                                     onEvent e Wheel (setFlag row col)
                                      return e
 
 
@@ -193,11 +191,22 @@ runGame i =
       setChildren gameDiv gameBoard
 
       appendChild documentBody radioContainer
-      appendChild radioContainer radioMark
+
+      openLabel <- newElem "label"
+        `with` [attr "for" =: "radioOpen"]
+      openLabelText <- newTextElem "Open"
+      appendChild openLabel openLabelText
+
+      flagLabel <- newElem "label"
+        `with` [attr "for" =: "radioFlag"]
+      flagLabelText <- newTextElem "Flag"
+      appendChild flagLabel flagLabelText
+
+      appendChild radioContainer radioOpen
+      appendChild radioContainer openLabel
+
       appendChild radioContainer radioFlag
-
-
-      appendChild documentBody output
+      appendChild radioContainer flagLabel
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
