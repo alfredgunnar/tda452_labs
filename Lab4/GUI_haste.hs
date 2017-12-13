@@ -67,14 +67,16 @@ runGame i =
 
       radioOpen <- newElem "input"
         `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
+                attr "name" =: "radio",
+                attr "id" =: "radioOpen",
                 attr "value" =: "open",
                 attr "checked" =: ""]
       setClass radioOpen "clicked" True
 
       radioFlag <- newElem "input"
         `with` [attr "type" =: "radio",
-                attr "name" =: "clickType",
+                attr "name" =: "radio",
+                attr "id" =: "radioFlag",
                 attr "value" =: "flag"]
 
       let markClicked _ = do setClass radioOpen "clicked" True
@@ -189,8 +191,22 @@ runGame i =
       setChildren gameDiv gameBoard
 
       appendChild documentBody radioContainer
+
+      openLabel <- newElem "label"
+        `with` [attr "for" =: "radioOpen"]
+      openLabelText <- newTextElem "Open"
+      appendChild openLabel openLabelText
+
+      flagLabel <- newElem "label"
+        `with` [attr "for" =: "radioFlag"]
+      flagLabelText <- newTextElem "Flag"
+      appendChild flagLabel flagLabelText
+
       appendChild radioContainer radioOpen
+      appendChild radioContainer openLabel
+
       appendChild radioContainer radioFlag
+      appendChild radioContainer flagLabel
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
