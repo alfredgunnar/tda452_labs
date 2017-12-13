@@ -160,7 +160,8 @@ runGame i =
 
       smiley <- newElem "img"
         `with` [attr "src" =: "smiley.png",
-                attr "alt" =: ":)"]
+                attr "alt" =: ":)",
+                attr "onClick" =: "location.reload()"]
       setClass smiley "smiley" True
 
       c <- getChildren document
