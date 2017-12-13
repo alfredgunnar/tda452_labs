@@ -51,7 +51,7 @@ runGame i =
 
       --output <- newElem "input"
 
-      b <- (iBoard i 10 10 8)
+      b <- (iBoard i 15 20 15)
       globalBoard <- newIORef b
 
       globalGameOver <- newIORef False
@@ -104,15 +104,18 @@ runGame i =
                                                else announceLoser
                                      else return ()
 
-      let setFlag row col _ = do board <- readIORef globalBoard
-                                 let b' = iMarkAt i row col board
-                                 gameBtns <- (getChildren gameDiv)
+      let setFlag row col _ = do gameOver <- readIORef globalGameOver
+                                 if not gameOver
+                                   then do board <- readIORef globalBoard
+                                           let b' = iMarkAt i row col board
+                                           gameBtns <- (getChildren gameDiv)
 
-                                 let boardCells = concat (rows b')
+                                           let boardCells = concat (rows b')
 
-                                 updateProperty gameBtns boardCells
-                                 --setProp output "value" "flag!"
-                                 writeIORef globalBoard b'
+                                           updateProperty gameBtns boardCells
+                                           --setProp output "value" "flag!"
+                                           writeIORef globalBoard b'
+                                   else return ()
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
