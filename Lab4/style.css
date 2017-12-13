@@ -1,6 +1,6 @@
-.container {
+.container, .radioContainer {
   margin: auto;
-  width: 80%;
+  width: 90%;
   font-size: 100%;
   font-family: "Comic Sans MS"
 }
@@ -76,5 +76,9 @@ input {
 }
 
 p.loser {
-  
+
+}
+
+.radioContainer{
+  text-align: center;
 }
