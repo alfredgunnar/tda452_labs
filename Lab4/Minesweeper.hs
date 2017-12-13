@@ -125,15 +125,16 @@ emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols =
   Board [[(C (Nearby 0) Idle) | _ <- [1..cols]] | _ <-[1..rows]]
 
--- | Given an int between 0-10 this generates a cell where the int represents
--- | the probability of the cell being a mine.
+-- | Given an int between 0-100 this generates a cell where the int
+-- | represents the probability of the cell being a mine.
 rndCell :: Int -> IO Cell
-rndCell n = do let cells = [(C Mine Idle) | _ <- [0..n]] ++ [(C (Nearby 0) Idle) | _ <- [0..(10-n)]]
-               rnd <- randomRIO (0,10)
-               return (cells !! rnd)
+rndCell n = do rnd <- randomRIO (0,100)
+               if rnd <= n
+                 then return (C Mine Idle)
+                 else return (C (Nearby 0) Idle)
 
 -- | Given a number of rows, a number of columns and the probability of mines
--- | represented by an int between 0-10 this function gives
+-- | represented by an int between 0-100 this function gives
 -- | a generator for a board.
 rndBoard :: Int -> Int -> Int -> IO Board
 rndBoard rows cols prob =
@@ -213,3 +214,16 @@ explodeBoardAtPositions ((row,col):ps) b =
 
 markAt :: Int -> Int -> Board -> Board
 markAt row col b = setCellAt row col (mark (getCellAt row col b)) b
+
+
+-----------------------------------------------------------------------------
+-- * Detecting state
+
+hasWon :: Board -> Bool
+hasWon b = hasWon' (concat (rows b))
+
+hasWon' :: [Cell] -> Bool
+hasWon' [] = True
+hasWon' ((C (Nearby n) cst):cs) | cst == Idle || cst == Marked = False
+hasWon' ((C Mine Clicked):cs) = False
+hasWon' (c:cs) = hasWon' cs
