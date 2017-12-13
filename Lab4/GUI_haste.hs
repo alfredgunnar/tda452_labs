@@ -7,6 +7,7 @@ import Data.Maybe (fromJust, isNothing)
 data Interface = Interface
   { iBoard    :: Int -> Int -> Int -> IO Board
   , iOpen     :: Int -> Int -> Board -> Maybe Board
+  , iHasWon   :: Board -> Bool
   }
 
 
@@ -33,7 +34,8 @@ newCellElem c = newElem "input"
 
 implementation = Interface
  { iBoard = rndBoard,
-   iOpen = open
+   iOpen = open,
+   iHasWon = hasWon
  }
 
 main = runGame implementation
@@ -44,7 +46,7 @@ runGame i =
       appendChild header hello
       appendChild documentBody header
 
-      b <- (iBoard i 10 10 1)
+      b <- (iBoard i 10 10 8)
       globalBoard <- newIORef b
 
       gameDiv <- newElem "div"
@@ -78,6 +80,12 @@ runGame i =
                                    then do gameBoard <- newBoardElem (fromJust b')
                                            writeIORef globalBoard (fromJust b')
                                            appendChild gameDiv gameBoard
+
+                                           if (iHasWon i (fromJust b'))
+                                             then do e <- newTextElem "WINNER!"
+                                                     appendChild gameDiv e
+                                             else return ()
+
                                    else do e <- newTextElem "LOSER"
                                            appendChild gameDiv e
 
