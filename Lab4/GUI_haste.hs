@@ -70,7 +70,7 @@ runGame i =
                               w <- newElem "p"
                               appendChild w e
                               setClass w "winner" True
-                              appendChild gameDiv w
+                              appendChild gameContainer w
                               writeIORef globalGameOver True
 
       let announceLoser = do e <- newTextElem "LOSER!"
