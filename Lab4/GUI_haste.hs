@@ -92,22 +92,29 @@ runGame i =
                                        let b'' = (fromJust b')
                                        let boardCells = concat (rows b'')
 
-
-
                                        updateProperty gameBtns boardCells
                                        setProp output "value" "click!"
 
                                        writeIORef globalBoard (fromJust b')
                                        --appendChild gameDiv gameBoard
 
-                      --                 if (iHasWon i (fromJust b'))
-                      --                   then do e <- newTextElem "WINNER!"
-                      --                           appendChild gameDiv e
-                      --                   else return ()
+                                       if (iHasWon i (fromJust b'))
+                                         then do e <- newTextElem "WINNER!"
+                                                 appendChild gameDiv e
+                                         else return ()
 
                                else do e <- newTextElem "LOSER"
                                        appendChild gameDiv e
 
+      let setFlag _ = do board <- readIORef globalBoard
+                         let b' = iMarkAt i 0 1 board
+                         gameBtns <- (getChildren gameDiv)
+
+                         let boardCells = concat (rows b')
+
+                         updateProperty gameBtns boardCells
+                         setProp output "value" "flag!"
+                         writeIORef globalBoard b'
 
       let newCellElem c = do e <- newElem "input"
                                `with` [attr "type" =: "button",
@@ -116,6 +123,7 @@ runGame i =
                                      style "height" =: "30px",
                                      style "background-color" =: "lightyellow" ]
                              onEvent e Click clickDetect
+                             onEvent e Wheel setFlag
                              return e
 
       -- Definition of functions
@@ -183,9 +191,6 @@ runGame i =
       appendChild documentBody colinput
       appendChild documentBody button
       appendChild documentBody output
-
-    --  onEvent button Click update
-    --  onEvent button Wheel setFlag
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
