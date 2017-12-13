@@ -11,6 +11,7 @@ data Interface = Interface
   , iHasWon    :: Board -> Bool
   , iMarkAt    :: Int -> Int -> Board -> Board
   , iWidth     :: Board -> Int
+  , iClickAll  :: Board -> Board
   }
 
 getCellElems f b = do parent <- newElem "div"
@@ -38,7 +39,8 @@ implementation = Interface
    iOpen = open,
    iHasWon = hasWon,
    iMarkAt = markAt,
-   iWidth = width
+   iWidth = width,
+   iClickAll = clickAll
  }
 
 main = runGame implementation
@@ -105,33 +107,34 @@ runGame i =
                              appendChild gameContainer l
                              writeIORef globalGameOver True
 
+      let updateBoard board = do gameBtns <- (getChildren gameDiv)
+                                 let boardCells = concat (rows board)
+                                 updateProperty gameBtns boardCells
+                                 writeIORef globalBoard board
+
       let clickOpen row col board = do let b' = iOpen i row col board
                                        if not (isNothing b')
-                                         then do gameBtns <- (getChildren gameDiv)
-                                                 let b'' = (fromJust b')
-                                                 let boardCells = concat (rows b'')
-                                                 updateProperty gameBtns boardCells
-                                                 writeIORef globalBoard (fromJust b')
+                                         then do let b'' = (fromJust b')
+                                                 updateBoard b''
+
                                                  if (iHasWon i (fromJust b'))
                                                    then announceWinner
                                                    else return ()
-                                         else announceLoser
+                                         else do announceLoser
+                                                 let b' = iClickAll i board
+                                                 updateBoard b'
 
       let setFlag row col board = do let b' = iMarkAt i row col board
-                                     gameBtns <- (getChildren gameDiv)
-                                     let boardCells = concat (rows b')
-                                     updateProperty gameBtns boardCells
-                                     writeIORef globalBoard b'
+                                     updateBoard b'
 
       let clickDetect row col _ = do gameOver <- readIORef globalGameOver
+                                     board <- readIORef globalBoard
                                      if not gameOver
-                                       then do board <- readIORef globalBoard
-                                               ret <- hasClass radioOpen "clicked"
+                                       then do ret <- hasClass radioOpen "clicked"
                                                if ret
                                                  then clickOpen row col board
                                                  else setFlag row col board
-                                       else return ()
-
+                                       else do return ()
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
