@@ -12,12 +12,12 @@ module Util where
 
 -- | Extension to the map function where the parameter function takes an int
 -- | representing the current list index
-mapi :: (a -> Int -> b) -> [a] -> [b]
+mapi :: (Int -> a -> b) -> [a] -> [b]
 mapi f l = mapi' 0 f l
   where
-    mapi' ::  Int -> (a -> Int -> b) -> [a] -> [b]
+    mapi' ::  Int -> (Int -> a -> b) -> [a] -> [b]
     mapi' i f []     = []
-    mapi' i f (x:xs) = ((f x i):(mapi' (i+1) f xs))
+    mapi' i f (x:xs) = ((f i x):(mapi' (i+1) f xs))
 
-test_mapi :: a -> Int -> (a,Int)
-test_mapi x n = (x,n)
+test_mapi :: Int -> a -> (a,Int)
+test_mapi n x = (x,n)
