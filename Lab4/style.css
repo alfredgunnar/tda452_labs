@@ -37,7 +37,7 @@ h1 {
   font-size: 100%;
 }
 
-input:matches([type="button"]) {
+input[type="button"] {
   width: 2em;
   height: 2em;
   background-color: #BDBDBD;
@@ -48,7 +48,7 @@ input:matches([type="button"]) {
   border-bottom: 2px solid #7B7B7B;
 }
 
-input:matches([type="button"]).clicked {
+input[type="button"].clicked {
   border-bottom-style: inset;
   border-left-style: inset;
   border-right-style: inset;
@@ -86,14 +86,14 @@ input:matches([type="button"]).clicked {
 }
 
 p.loser {
-
+  font-size: 1.5em;
 }
 
-.radioContainer{
+.radioContainer {
   text-align: center;
   padding: 1em;
 }
 
-input:matches([type="radio"]){
+input[type="radio"] {
   margin-left: 2em;
 }
