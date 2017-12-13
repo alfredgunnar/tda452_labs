@@ -49,7 +49,10 @@ runGame i =
       header <- newElem "h1"
       appendChild header hello
 
-      --output <- newElem "input"
+      output <- newElem "button"
+        `with` [style "width" =: "200px",
+                style "height" =: "100px",
+                style "background-color" =: "lightblue"]
 
       b <- (iBoard i 10 10 8)
       globalBoard <- newIORef b
@@ -104,15 +107,16 @@ runGame i =
                                                else announceLoser
                                      else return ()
 
-      let setFlag row col _ = do board <- readIORef globalBoard
-                                 let b' = iMarkAt i row col board
-                                 gameBtns <- (getChildren gameDiv)
+      let setFlag row col evt = do board <- readIORef globalBoard
+                                   let b' = iMarkAt i row col board
+                                   gameBtns <- (getChildren gameDiv)
 
-                                 let boardCells = concat (rows b')
+                                   let boardCells = concat (rows b')
 
-                                 updateProperty gameBtns boardCells
-                                 --setProp output "value" "flag!"
-                                 writeIORef globalBoard b'
+                                   updateProperty gameBtns boardCells
+                                   --if (mouseButton evt)
+                                   setProp output "value" "flag"
+                                   writeIORef globalBoard b'
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
@@ -151,6 +155,21 @@ runGame i =
                   attr "type" =: "text/css",
                   attr "href" =: "style.css"]
 
+      radioContainer <- newElem "div"
+      setClass radioContainer "radioContainer" True
+
+      radioMark <- newElem "input"
+        `with` [attr "type" =: "radio",
+                attr "name" =: "clickType",
+                attr "value" =: "mark",
+                attr "checked" =: ""]
+
+      radioFlag <- newElem "input"
+        `with` [attr "type" =: "radio",
+                attr "name" =: "clickType",
+                attr "value" =: "flag"]
+
+      --setAttr documentBody "oncontextmenu" "return false;"
 
       appendChild headerEl  style
 
@@ -165,7 +184,13 @@ runGame i =
       appendChild smileyBtn smiley
       appendChild gameContainer gameDiv
       setChildren gameDiv gameBoard
-      --appendChild documentBody output
+
+      appendChild documentBody radioContainer
+      appendChild radioContainer radioMark
+      appendChild radioContainer radioFlag
+
+
+      appendChild documentBody output
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
