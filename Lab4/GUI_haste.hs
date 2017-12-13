@@ -2,7 +2,7 @@ import Haste.DOM
 import Haste.Events
 import Data.IORef
 import Minesweeper
-import Data.Maybe (fromJust, isNothing)
+import Data.Maybe (fromJust, isJust)
 import Util
 
 data Interface = Interface
@@ -32,13 +32,13 @@ getCellElems f b = do parent <- newElem "div"
 -- This is a helper function for getCellElems that is used to call the cell
 -- creator function for each row
 getCellElems' n f []     = []
-getCellElems' n f (r:rs) = children ++ (getCellElems' (n+1) f rs)
+getCellElems' n f (r:rs) = children ++ getCellElems' (n+1) f rs
   where
     children = mapi (f n) r
 
 -- Update all cells visually (sets class to "clicked" if applicable)
-updateProperty [] [] = do return ()
-updateProperty (btn:btns) ((C ct cs): bcs) =
+updateProperty [] [] = return ()
+updateProperty (btn:btns) (C ct cs: bcs) =
    do setProp btn "value" (cellToButtonStr (C ct cs))
       if cs == Clicked
         then setClass btn "clicked" True
@@ -71,7 +71,7 @@ runGame i =
       globalGameOver <- newIORef False
 
       -- Calculate GUI width and set to containers
-      let gameDivWidth = show (2 * (iWidth i b)) ++ "em"
+      let gameDivWidth = show (2 * iWidth i b) ++ "em"
       gameDiv <- newElem "div"
                   `with` [style "width" =: gameDivWidth]
       setClass gameDiv "gameDiv" True
@@ -122,18 +122,18 @@ runGame i =
                              writeIORef globalGameOver True
 
       -- Used when updating viewed board according to model
-      let updateBoard board = do gameBtns <- (getChildren gameDiv)
+      let updateBoard board = do gameBtns <- getChildren gameDiv
                                  let boardCells = concat (rows board)
                                  updateProperty gameBtns boardCells
                                  writeIORef globalBoard board
 
       -- Called when radio button is open and the board is clicked
       let clickOpen row col board = do let b' = iOpen i row col board
-                                       if not (isNothing b')
-                                         then do let b'' = (fromJust b')
+                                       if isJust b'
+                                         then do let b'' = fromJust b'
                                                  updateBoard b''
 
-                                                 if (iHasWon i (fromJust b'))
+                                                 if iHasWon i (fromJust b')
                                                    then announceWinner
                                                    else return ()
                                          else do announceLoser
@@ -153,7 +153,7 @@ runGame i =
                                                if ret
                                                  then clickOpen row col board
                                                  else clickSetFlag row col board
-                                       else do return ()
+                                       else return ()
 
       -- Creates a cell and registers click listener
       let newCellElem row col c = do e <- newElem "input"
@@ -187,9 +187,9 @@ runGame i =
 
       -- Add css stylesheet
       c <- getChildren document
-      let html = c !! 0
+      let html = head c
       h <- getChildren html
-      let headerEl = h !! 0
+      let headerEl = head h
       style <- newElem "link"
           `with` [attr "rel" =: "stylesheet",
                   attr "type" =: "text/css",
