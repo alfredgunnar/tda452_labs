@@ -15,27 +15,36 @@ import Math.Geometry.Grid.Octagonal
 
 -----------------------------------------------------------------------------
 -- * Cell definition and helper functions
-data Cell = C CellType Bool
+data Cell = C CellType CellState
   deriving (Eq,Show)
 
 data CellType = Mine | Nearby Int
   deriving (Eq,Show)
 
+data CellState = Clicked | Marked | Idle
+  deriving (Eq,Show)
+
 cellType :: Cell -> CellType
 cellType (C ct _) = ct
 
--- | Takes a cell and sets its boolean value to true
+-- | Takes a cell and sets its state to clicked
 click :: Cell -> Cell
-click (C ct _) = (C ct True)
+click (C ct _) = C ct Clicked
+
+mark :: Cell -> Cell
+mark (C ct _) = C ct Marked
 
 isClicked :: Cell -> Bool
-isClicked (C _ b) = b
+isClicked (C _ cs) = cs == Clicked
+
+cellState :: Cell -> CellState
+cellState (C _ cs) = cs
 
 -- | Given a cell, this function increments the counter within.
 -- | If it contains a mine, nothing is done and a mine is returned.
 incrementCell :: Cell -> Cell
-incrementCell (C Mine b) = (C Mine b)
-incrementCell (C (Nearby n) b) = (C (Nearby (n+1)) b)
+incrementCell (C Mine cs) = (C Mine cs)
+incrementCell (C (Nearby n) cs) = (C (Nearby (n+1)) cs)
 
 
 -----------------------------------------------------------------------------
@@ -102,8 +111,9 @@ cellToChar (C (Nearby n) _) = intToDigit n
 
 -- | Converts a cell to a char and takes into account if it is clicked or not
 cellToCharClick :: Cell -> Char
-cellToCharClick (C ct clicked) | not clicked = 'X'
-                               | otherwise = cellToChar (C ct clicked)
+cellToCharClick (C ct Idle) = 'X'
+cellToCharClick (C ct Marked) = 'M'
+cellToCharClick (C ct Clicked) = cellToChar (C ct Clicked)
 
 
 -----------------------------------------------------------------------------
@@ -113,12 +123,12 @@ cellToCharClick (C ct clicked) | not clicked = 'X'
 -- | generates a board without any bombs.
 emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols =
-  Board [[(C (Nearby 0) False) | _ <- [1..cols]] | _ <-[1..rows]]
+  Board [[(C (Nearby 0) Idle) | _ <- [1..cols]] | _ <-[1..rows]]
 
 -- | Given an int between 0-10 this generates a cell where the int represents
 -- | the probability of the cell being a mine.
 rndCell :: Int -> IO Cell
-rndCell n = do let cells = [(C Mine False) | _ <- [0..n]] ++ [(C (Nearby 0) False) | _ <- [0..(10-n)]]
+rndCell n = do let cells = [(C Mine Idle) | _ <- [0..n]] ++ [(C (Nearby 0) Idle) | _ <- [0..(10-n)]]
                rnd <- randomRIO (0,10)
                return (cells !! rnd)
 
@@ -148,12 +158,12 @@ findMinesOnRows (r:rs) b = findMinesOnRows rs (findMinesOnRow row_num r b)
 -- | the neighbours of every mine in the current row.
 findMinesOnRow :: Int -> [Cell] -> Board -> Board
 findMinesOnRow row_num [] b        = b
-findMinesOnRow row_num ((C Mine click):cs) b =
+findMinesOnRow row_num ((C Mine cst):cs) b =
   findMinesOnRow row_num cs (
       incrementAtPositions (cellNeighbours row_num col_num b) b
     )
   where
-    col_num = (width b) - length ((C Mine click):cs)
+    col_num = (width b) - length ((C Mine cst):cs)
 
 findMinesOnRow row_num (c:cs) b    = findMinesOnRow row_num cs b
 
@@ -200,3 +210,6 @@ explodeBoardAtPositions :: [(Int,Int)] -> Board -> Board
 explodeBoardAtPositions [] b = b
 explodeBoardAtPositions ((row,col):ps) b =
   explodeBoardAtPositions ps (explodeBoardAt row col b)
+
+markAt :: Int -> Int -> Board -> Board
+markAt row col b = setCellAt row col (mark (getCellAt row col b)) b
