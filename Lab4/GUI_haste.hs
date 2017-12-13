@@ -24,7 +24,12 @@ newBoardElem' (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' rs)
 
 newCellElem c = newElem "input"
                       `with` [attr "type" =: "button",
-                              attr "value" =: cellToButtonStr c]
+                              attr "value" =: cellToButtonStr c,
+                              style "width" =: "30px",
+                              style "height" =: "30px",
+                              --style "background-color" =: "yellow",
+                              --style "background-color" =: "yellow",
+                              style "background-color" =: "lightyellow" ]
 
 implementation = Interface
  { iBoard = rndBoard,
@@ -34,7 +39,7 @@ implementation = Interface
 main = runGame implementation
 
 runGame i =
-   do hello <- newTextElem "Hello"
+   do hello <- newTextElem "Minesweeper Deluxe Edition"
       header <- newElem "h1"
       appendChild header hello
       appendChild documentBody header
@@ -77,15 +82,15 @@ runGame i =
                                            appendChild gameDiv e
 
 
-      let update _ = do row <- getProp rowinput "value"
-                        col <- getProp colinput "value"
-                        let r = read row :: Int -- can fail!
-                        let c = read col :: Int -- can fail!
+      let update mouseData = do row <- getProp rowinput "value"
+                                col <- getProp colinput "value"
+                                let r = read row :: Int -- can fail!
+                                let c = read col :: Int -- can fail!
 
-                        board <- readIORef globalBoard
-                        reloadBoard r c board
+                                board <- readIORef globalBoard
+                                reloadBoard r c board
 
-                        setProp output "value" ("(" ++ show r ++ "," ++ show c ++ ")")
+                                setProp output "value" (show (mouseButton mouseData) ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
       button <- newElem "input"
                   `with` [attr "type" =: "button",
