@@ -106,6 +106,7 @@ runGame i =
       onEvent button Click update
 
 cellToButtonStr :: Cell -> String
-cellToButtonStr (C _          False) = " "
-cellToButtonStr (C Mine       _)     = "¤"
-cellToButtonStr (C (Nearby n) _)     = show n
+cellToButtonStr (C _          Idle)   = " "
+cellToButtonStr (C _          Marked) = "M"
+cellToButtonStr (C Mine       _)      = "¤"
+cellToButtonStr (C (Nearby n) _)      = show n
