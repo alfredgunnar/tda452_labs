@@ -11,15 +11,21 @@ data Interface = Interface
   , iMarkAt   :: Int -> Int -> Board -> Board
   }
 
+getCellElems f b = do parent <- newElem "div"
+                      children <- sequence (getCellElems' f (rows b))
+                    --setChildren parent children --(getCellElems' (rows b))
+                      return children
 
 
 
-newBoardElem' f []     = []
-newBoardElem' f (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' f rs)
+getCellElems' f []     = []
+getCellElems' f (r:rs) = children ++ [newElem "br"] ++ (getCellElems' f rs)
   where
     children = map f r
 
-
+updateProperty [] [] = do return ()
+updateProperty (btn:btns) (boardCell: bcs) = do setProp btn "value" (cellToButtonStr boardCell)
+                                                updateProperty btns bcs
 
 
 implementation = Interface
@@ -60,78 +66,110 @@ runGame i =
 
       gameDiv <- newElem "div"
 
-      let clickDetect _ = do clearChildren gameDiv
-                             board <- readIORef globalBoard
-                             let updatedBoard = iOpen i 2 2 board
-                             setProp output "value" "click!"
+      let onEventForElems event handler []       = do return ()
+      let onEventForElems event handler (e:es) = (onEvent e event handler) : onEventForElems event handler es
+
+      let setProp' propid val e = setProp e propid val
+
+      let clickDetect _ = do board <- readIORef globalBoard
+                             let b' = iOpen i 2 2 board
+
+
+
+                             if not (isNothing b')
+                               then do --cells <- getCellElems newCellElem (fromJust b')
+                                       --onEventForElems Click clickDetect cells
+                                       --gameBoard <- newElem "div"
+                                       --setChildren gameBoard cells
+
+                                       gameBtns <- (getChildren gameDiv)
+
+                                       let b'' = (fromJust b')
+                                       let boardCells = concat (rows b'')
+
+
+
+                                       updateProperty gameBtns boardCells
+                                       setProp output "value" "click!"
+
+                                       writeIORef globalBoard (fromJust b')
+                                       --appendChild gameDiv gameBoard
+
+                      --                 if (iHasWon i (fromJust b'))
+                      --                   then do e <- newTextElem "WINNER!"
+                      --                           appendChild gameDiv e
+                      --                   else return ()
+
+                               else do e <- newTextElem "LOSER"
+                                       appendChild gameDiv e
+
 
       let newCellElem c = do e <- newElem "input"
-                              `with` [attr "type" =: "button",
-                                    attr "value" =: cellToButtonStr c,
-                                    style "width" =: "30px",
-                                    style "height" =: "30px",
-                                    style "background-color" =: "lightyellow" ]
+                               `with` [attr "type" =: "button",
+                                     attr "value" =: cellToButtonStr c,
+                                     style "width" =: "30px",
+                                     style "height" =: "30px",
+                                     style "background-color" =: "lightyellow" ]
                              onEvent e Click clickDetect
                              return e
 
-      let newBoardElem b = do parent <- newElem "div"
-                              children <- sequence (newBoardElem' newCellElem (rows b))
-                              setChildren parent children --(newBoardElem' (rows b))
-                              return parent
-
-
       -- Definition of functions
-      let reloadBoard r c b = do clearChildren gameDiv
-                                 let b' = iOpen i r c b
+    --  let reloadBoard r c b = do clearChildren gameDiv
+    --                             let b' = iOpen i r c b
 
-                                 if not (isNothing b')
-                                   then do gameBoard <- newBoardElem (fromJust b')
-                                           writeIORef globalBoard (fromJust b')
-                                           appendChild gameDiv gameBoard
+    --                             if not (isNothing b')
+    --                               then do gameBoard <- getCellElems (fromJust b')
+    --                                       writeIORef globalBoard (fromJust b')
+    --                                       appendChild gameDiv gameBoard
 
-                                           if (iHasWon i (fromJust b'))
-                                             then do e <- newTextElem "WINNER!"
-                                                     appendChild gameDiv e
-                                             else return ()
+    --                                       if (iHasWon i (fromJust b'))
+    --                                         then do e <- newTextElem "WINNER!"
+    --                                                 appendChild gameDiv e
+    --                                         else return ()
 
-                                   else do e <- newTextElem "LOSER"
-                                           appendChild gameDiv e
+    --                               else do e <- newTextElem "LOSER"
+    --                                       appendChild gameDiv e
 
-      let setBoardFlag r c b = do clearChildren gameDiv
-                                  let b' = iMarkAt i r c b
-                                  gameBoard <- newBoardElem b'
-                                  writeIORef globalBoard b'
-                                  appendChild gameDiv gameBoard
+    --  let setBoardFlag r c b = do clearChildren gameDiv
+    --                              let b' = iMarkAt i r c b
+    --                              gameBoard <- getCellElems b'
+    --                              writeIORef globalBoard b'
+    --                              appendChild gameDiv gameBoard
 
-      let update mouseData = do row <- getProp rowinput "value"
-                                col <- getProp colinput "value"
-                                let r = read row :: Int -- can fail!
-                                let c = read col :: Int -- can fail!
+    --  let update mouseData = do row <- getProp rowinput "value"
+    --                            col <- getProp colinput "value"
+    --                            let r = read row :: Int -- can fail!
+    --                            let c = read col :: Int -- can fail!
 
-                                board <- readIORef globalBoard
-                                reloadBoard r c board
+    --                            board <- readIORef globalBoard
+    --                            reloadBoard r c board
 
-                                setProp output "value" (show (mouseButton mouseData) ++ "(" ++ show r ++ "," ++ show c ++ ")")
+    --                            setProp output "value" (show (mouseButton mouseData) ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
-      let setFlag _ = do row <- getProp rowinput "value"
-                         col <- getProp colinput "value"
-                         let r = read row :: Int -- can fail!
-                         let c = read col :: Int -- can fail!
+    --  let setFlag _ = do row <- getProp rowinput "value"
+    --                     col <- getProp colinput "value"
+    --                     let r = read row :: Int -- can fail!
+    --                     let c = read col :: Int -- can fail!
 
-                         board <- readIORef globalBoard
-                         setBoardFlag r c board
+    --                     board <- readIORef globalBoard
+    --                     setBoardFlag r c board
 
-                         setProp output "value" (show "mark" ++ "(" ++ show r ++ "," ++ show c ++ ")")
+    --                     setProp output "value" (show "mark" ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
 
-      gameBoard <- newBoardElem b
+      gameBoard <- getCellElems newCellElem b
+      --a <- onEventForElems Click clickDetect cells
+
+      --gameBoard <- newElem "div"
+      --setChildren gameBoard cells
+
 
 
       appendChild header hello
       appendChild documentBody header
 
       appendChild documentBody gameDiv
-      appendChild gameDiv gameBoard
+      setChildren gameDiv gameBoard
       appendChild rowlabel rowlabeltxt
       appendChild collabel collabeltxt
       appendChild documentBody rowlabel
@@ -141,8 +179,8 @@ runGame i =
       appendChild documentBody button
       appendChild documentBody output
 
-      onEvent button Click update
-      onEvent button Wheel setFlag
+    --  onEvent button Click update
+    --  onEvent button Wheel setFlag
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
