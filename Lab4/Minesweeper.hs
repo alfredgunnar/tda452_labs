@@ -100,6 +100,13 @@ cellNeighbours row col b = n++nw++w++sw++s++se++e++ne
 cellTypeAt :: Int -> Int -> Board -> CellType
 cellTypeAt row col b = cellType ((rows b !! row) !! col)
 
+-- | Clicks all cells in a board
+clickAll :: Board -> Board
+clickAll b = Board (clickAll' (rows b))
+  where
+    clickAll' :: [[Cell]] -> [[Cell]]
+    clickAll' [] = []
+    clickAll' (r:rs) = ((map click r):(clickAll' rs))
 
 -----------------------------------------------------------------------------
 -- * Printing Board
