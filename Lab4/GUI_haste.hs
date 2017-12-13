@@ -9,6 +9,7 @@ data Interface = Interface
   , iOpen     :: Int -> Int -> Board -> Maybe Board
   , iHasWon   :: Board -> Bool
   , iMarkAt   :: Int -> Int -> Board -> Board
+  , iWidth :: Board -> Int
   }
 
 getCellElems f b = do parent <- newElem "div"
@@ -19,7 +20,7 @@ getCellElems f b = do parent <- newElem "div"
 
 
 getCellElems' f []     = []
-getCellElems' f (r:rs) = children ++ [newElem "br"] ++ (getCellElems' f rs)
+getCellElems' f (r:rs) = children ++ (getCellElems' f rs)
   where
     children = map f r
 
@@ -32,7 +33,8 @@ implementation = Interface
  { iBoard = rndBoard,
    iOpen = open,
    iHasWon = hasWon,
-   iMarkAt = markAt
+   iMarkAt = markAt,
+   iWidth = width
  }
 
 main = runGame implementation
@@ -64,7 +66,10 @@ runGame i =
       b <- (iBoard i 10 10 1)
       globalBoard <- newIORef b
 
+      let gameDivWidth = show (30 * (iWidth i b)) ++ "px"
+
       gameDiv <- newElem "div"
+                  `with` [style "width" =: gameDivWidth ]
 
       let onEventForElems event handler []       = do return ()
       let onEventForElems event handler (e:es) = (onEvent e event handler) : onEventForElems event handler es
@@ -72,7 +77,7 @@ runGame i =
       let setProp' propid val e = setProp e propid val
 
       let clickDetect _ = do board <- readIORef globalBoard
-                             let b' = iOpen i 2 2 board
+                             let b' = iOpen i 0 0 board
 
 
 
