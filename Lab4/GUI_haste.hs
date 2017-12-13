@@ -60,6 +60,8 @@ runGame i =
 
       gameDiv <- newElem "div"
 
+      let clickDetect _ = do setProp output "value" "click!"
+
       let newCellElem c = do e <- newElem "input"
                               `with` [attr "type" =: "button",
                                     attr "value" =: cellToButtonStr c,
@@ -68,7 +70,7 @@ runGame i =
                                     --style "background-color" =: "yellow",
                                     --style "background-color" =: "yellow",
                                     style "background-color" =: "lightyellow" ]
-                             --onEvent button Click update
+                             onEvent e Click clickDetect
                              return e
 
       let newBoardElem b = do parent <- newElem "div"
