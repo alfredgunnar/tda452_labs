@@ -6,11 +6,6 @@ import Data.Char hiding (isNumber)
 import Data.Maybe (fromJust, isNothing)
 import System.Random
 
--- run "cabal install grid" for this to work, then restart ghci
--- use "haste-cabal install grid" when using haste
-import Math.Geometry.Grid
-import Math.Geometry.Grid.Octagonal
-
 
 
 -----------------------------------------------------------------------------
@@ -74,9 +69,31 @@ getCellAt row col b = ((rows b) !! row) !! col
 -- | Given row, col and board this function returns a list of the neighbour
 -- | positions.
 cellNeighbours :: Int -> Int -> Board -> [(Int,Int)]
-cellNeighbours row col b = neighbours grid (row,col)
+cellNeighbours row col b = n++nw++w++sw++s++se++e++ne
   where
-    grid = rectOctGrid (height b) (width b)
+    n  | row-1 >= 0 = [(row-1,col)]
+       | otherwise = []
+
+    nw | row-1 >= 0 && col-1 >= 0 = [(row-1,col-1)]
+       | otherwise = []
+
+    w  | col-1 >= 0 = [(row,col-1)]
+       | otherwise = []
+
+    sw | row+1 < height b && col-1 >= 0 = [(row+1,col-1)]
+       | otherwise = []
+
+    s  | row+1 < height b = [(row+1,col)]
+       | otherwise = []
+
+    se | row+1 < height b && col+1 < width b = [(row+1,col+1)]
+       | otherwise = []
+
+    e  | col+1 < width b = [(row,col+1)]
+       | otherwise = []
+
+    ne | row-1 >= 0 && col+1 < width b = [(row-1,col+1)]
+       | otherwise = []
 
 -- | Given row, col and board this function returns the type of the cell
 -- | at the given position
