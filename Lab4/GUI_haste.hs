@@ -1,5 +1,6 @@
 import Haste.DOM
 import Haste.Events
+import Data.IORef
 import Minesweeper
 import Data.Maybe (fromJust, isNothing)
 
@@ -23,10 +24,12 @@ newBoardElem' (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' rs)
 
 newCellElem c = newElem "input"
                       `with` [attr "type" =: "button",
-                              attr "value" =: cellToButtonStr c]
-
-b1 = Board { rows = [[C Mine True,C (Nearby 1) True,C (Nearby 1) True],
-                     [C (Nearby 0) True,C Mine False,C Mine False]]}
+                              attr "value" =: cellToButtonStr c,
+                              style "width" =: "30px",
+                              style "height" =: "30px",
+                              --style "background-color" =: "yellow",
+                              --style "background-color" =: "yellow",
+                              style "background-color" =: "lightyellow" ]
 
 implementation = Interface
  { iBoard = rndBoard,
@@ -36,12 +39,13 @@ implementation = Interface
 main = runGame implementation
 
 runGame i =
-   do hello <- newTextElem "Hello"
+   do hello <- newTextElem "Minesweeper Deluxe Edition"
       header <- newElem "h1"
       appendChild header hello
       appendChild documentBody header
 
       b <- (iBoard i 10 10 1)
+      globalBoard <- newIORef b
 
       gameDiv <- newElem "div"
       appendChild documentBody gameDiv
@@ -69,21 +73,24 @@ runGame i =
 
       let reloadBoard r c b = do clearChildren gameDiv
                                  let b' = iOpen i r c b
+
                                  if not (isNothing b')
                                    then do gameBoard <- newBoardElem (fromJust b')
+                                           writeIORef globalBoard (fromJust b')
                                            appendChild gameDiv gameBoard
                                    else do e <- newTextElem "LOSER"
-                                           appendChild documentBody e
+                                           appendChild gameDiv e
 
 
-      let update _ = do row <- getProp rowinput "value"
-                        col <- getProp colinput "value"
-                        let r = read row :: Int -- can fail!
-                        let c = read col :: Int -- can fail!
+      let update mouseData = do row <- getProp rowinput "value"
+                                col <- getProp colinput "value"
+                                let r = read row :: Int -- can fail!
+                                let c = read col :: Int -- can fail!
 
-                        reloadBoard r c b
+                                board <- readIORef globalBoard
+                                reloadBoard r c board
 
-                        setProp output "value" ("(" ++ show r ++ "," ++ show c ++ ")")
+                                setProp output "value" (show (mouseButton mouseData) ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
       button <- newElem "input"
                   `with` [attr "type" =: "button",
