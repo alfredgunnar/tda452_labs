@@ -1,5 +1,5 @@
 body {
-  background-image: url("http://www.altocumulus.org/~hallgren/P/o023.jpg");
+  background-image: url("o023.jpg");
   font-family: "Comic Sans MS";
 }
 
@@ -9,7 +9,7 @@ body {
   font-size: 100;
   padding: 1em 0em;
   font-family: "Comic Sans MS";
-  background-image: url("http://www.altocumulus.org/~hallgren/P/Texture0106.jpg");
+  background-image: url("Texture0106.jpg");
 }
 
 h1 {
@@ -25,6 +25,10 @@ h1 {
   border-left: 2px solid #7B7B7B;
   border-right: 2px solid #FFFFFF;
   border-bottom: 2px solid #FFFFFF;
+}
+
+input, button {
+  cursor: pointer;
 }
 
 .gameContainer {

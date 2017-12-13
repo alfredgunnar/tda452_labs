@@ -156,12 +156,12 @@ runGame i =
       setClass gameDivTop "gameDivTop" True
 
       smileyBtn <- newElem "button"
+        `with` [attr "onClick" =: "location.reload()"]
       setClass smileyBtn "smileyBtn" True
 
       smiley <- newElem "img"
         `with` [attr "src" =: "smiley.png",
-                attr "alt" =: ":)",
-                attr "onClick" =: "location.reload()"]
+                attr "alt" =: ":)"]
       setClass smiley "smiley" True
 
       c <- getChildren document
