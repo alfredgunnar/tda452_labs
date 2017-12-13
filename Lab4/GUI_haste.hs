@@ -77,32 +77,38 @@ runGame i =
 
       let setProp' propid val e = setProp e propid val
 
-      let clickDetect row col evt = do board <- readIORef globalBoard
-                                       let b' = iOpen i row col board
+      let clickDetect row col _ = do board <- readIORef globalBoard
+                                     let b' = iOpen i row col board
 
 
 
-                                       if not (isNothing b')
-                                         then do gameBtns <- (getChildren gameDiv)
+                                     if not (isNothing b')
+                                       then do gameBtns <- (getChildren gameDiv)
 
-                                                 let b'' = (fromJust b')
-                                                 let boardCells = concat (rows b'')
+                                               let b'' = (fromJust b')
+                                               let boardCells = concat (rows b'')
 
+                                               updateProperty gameBtns boardCells
 
+                                               writeIORef globalBoard (fromJust b')
 
-                                                 updateProperty gameBtns boardCells
-                                                 --setProp output "value" (show (mouseButton evt))
+                                               if (iHasWon i (fromJust b'))
+                                                 then do e <- newTextElem "WINNER!"
+                                                         appendChild gameDiv e
+                                                 else return ()
 
-                                                 writeIORef globalBoard (fromJust b')
+                                       else do e <- newTextElem "LOSER"
+                                               appendChild gameDiv e
 
-                                                 if (iHasWon i (fromJust b'))
-                                                   then do e <- newTextElem "WINNER!"
-                                                           appendChild gameDiv e
-                                                   else return ()
+      let setFlag row col _ = do board <- readIORef globalBoard
+                                 let b' = iMarkAt i row col board
+                                 gameBtns <- (getChildren gameDiv)
 
-                                         else do e <- newTextElem "LOSER"
-                                                 appendChild gameDiv e
+                                 let boardCells = concat (rows b')
 
+                                 updateProperty gameBtns boardCells
+                                 setProp output "value" "flag!"
+                                 writeIORef globalBoard b'
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
@@ -113,6 +119,7 @@ runGame i =
                                              style "height" =: "30px",
                                              style "background-color" =: "lightyellow" ]
                                      onEvent e Click (clickDetect row col)
+                                     onEvent e Wheel (setFlag row col)
                                      return e
 
 
