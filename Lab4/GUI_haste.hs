@@ -197,6 +197,7 @@ runGame i =
       openLabelText <- newTextElem "Open"
       appendChild openLabel openLabelText
 
+
       flagLabel <- newElem "label"
         `with` [attr "for" =: "radioFlag"]
       flagLabelText <- newTextElem "Flag"

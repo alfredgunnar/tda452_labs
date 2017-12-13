@@ -27,7 +27,7 @@ h1 {
   font-size: 100%;
 }
 
-input {
+input:matches([type="button"]) {
   width: 2em;
   height: 2em;
   background-color: #BDBDBD;
@@ -38,7 +38,7 @@ input {
   border-bottom: 2px solid #7B7B7B;
 }
 
-.clicked {
+input:matches([type="button"]).clicked {
   border-bottom-style: inset;
   border-left-style: inset;
   border-right-style: inset;
@@ -81,4 +81,9 @@ p.loser {
 
 .radioContainer{
   text-align: center;
+  padding: 1em;
+}
+
+input:matches([type="radio"]){
+  margin-left: 2em;
 }
