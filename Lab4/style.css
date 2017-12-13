@@ -5,7 +5,7 @@ body {
 
 .container, .radioContainer {
   margin: auto;
-  width: 90%;
+  width: auto;
   font-size: 100;
   padding: 1em 0em;
   font-family: "Comic Sans MS";

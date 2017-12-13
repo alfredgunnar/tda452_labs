@@ -14,26 +14,38 @@ data Interface = Interface
   , iClickAll  :: Board -> Board
   }
 
+-- Convert a cell to string representation
+cellToButtonStr :: Cell -> String
+cellToButtonStr (C _          Idle)          = " "
+cellToButtonStr (C _          Marked)        = "⚑"
+cellToButtonStr (C Mine       _)             = "¤"
+cellToButtonStr (C (Nearby n) _) | n == 0    = " "
+                                 | otherwise = show n
+
+
+-- This function takes a function that creates cell elements (newCellElem)
+-- and also a board
 getCellElems f b = do parent <- newElem "div"
                       children <- sequence (getCellElems' 0 f (rows b))
-                    --setChildren parent children --(getCellElems' (rows b))
                       return children
 
-
-
+-- This is a helper function for getCellElems that is used to call the cell
+-- creator function for each row
 getCellElems' n f []     = []
 getCellElems' n f (r:rs) = children ++ (getCellElems' (n+1) f rs)
   where
     children = mapi (f n) r
 
+-- Update all cells visually (sets class to "clicked" if applicable)
 updateProperty [] [] = do return ()
-updateProperty (btn:btns) ((C ct cs): bcs) = do setProp btn "value" (cellToButtonStr (C ct cs))
-                                                if cs == Clicked
-                                                  then setClass btn "clicked" True
-                                                  else return ()
-                                                updateProperty btns bcs
+updateProperty (btn:btns) ((C ct cs): bcs) =
+   do setProp btn "value" (cellToButtonStr (C ct cs))
+      if cs == Clicked
+        then setClass btn "clicked" True
+        else return ()
+      updateProperty btns bcs
 
-
+-- Interface between view and model
 implementation = Interface
  { iBoard = rndBoard,
    iOpen = open,
@@ -46,27 +58,28 @@ implementation = Interface
 main = runGame implementation
 
 runGame i =
-   -- Definition of variables
    do hello <- newTextElem "Minesweeper Deluxe Edition"
       header <- newElem "h1"
       appendChild header hello
 
+      -- Generate initial board. Numbers are: rows, columns, and
+      -- probability for a tile to have a mine [0-100]
       b <- (iBoard i 15 20 15)
       globalBoard <- newIORef b
 
+      -- Set up gameOver variable
       globalGameOver <- newIORef False
 
+      -- Calculate GUI width and set to containers
       let gameDivWidth = show (2 * (iWidth i b)) ++ "em"
-
       gameDiv <- newElem "div"
                   `with` [style "width" =: gameDivWidth]
       setClass gameDiv "gameDiv" True
-
       gameContainer <- newElem "div"
                      `with` [style "width" =: gameDivWidth]
       setClass gameContainer "gameContainer" True
 
-
+      -- Radio buttons for open or put out a flag
       radioOpen <- newElem "input"
         `with` [attr "type" =: "radio",
                 attr "name" =: "radio",
@@ -81,6 +94,8 @@ runGame i =
                 attr "id" =: "radioFlag",
                 attr "value" =: "flag"]
 
+      -- Keep track of radio buttons clicked with a class
+      -- Were no hasAttribute class so we used hasClass instead
       let markClicked _ = do setClass radioOpen "clicked" True
                              setClass radioFlag "clicked" False
 
@@ -90,9 +105,7 @@ runGame i =
       onEvent radioOpen Click markClicked
       onEvent radioFlag Click flagClicked
 
-
-
-
+      -- This function sets the gameOver variable to true
       let announceWinner = do e <- newTextElem "WINNER!"
                               w <- newElem "p"
                               appendChild w e
@@ -100,6 +113,7 @@ runGame i =
                               appendChild gameContainer w
                               writeIORef globalGameOver True
 
+      -- This functions also sets the gameOver variable to true
       let announceLoser = do e <- newTextElem "LOSER!"
                              l <- newElem "p"
                              appendChild l e
@@ -107,11 +121,13 @@ runGame i =
                              appendChild gameContainer l
                              writeIORef globalGameOver True
 
+      -- Used when updating viewed board according to model
       let updateBoard board = do gameBtns <- (getChildren gameDiv)
                                  let boardCells = concat (rows board)
                                  updateProperty gameBtns boardCells
                                  writeIORef globalBoard board
 
+      -- Called when radio button is open and the board is clicked
       let clickOpen row col board = do let b' = iOpen i row col board
                                        if not (isNothing b')
                                          then do let b'' = (fromJust b')
@@ -124,25 +140,30 @@ runGame i =
                                                  let b' = iClickAll i board
                                                  updateBoard b'
 
-      let setFlag row col board = do let b' = iMarkAt i row col board
-                                     updateBoard b'
+      -- Called when radio button is flag and the board is clicked
+      let clickSetFlag row col board = do let b' = iMarkAt i row col board
+                                          updateBoard b'
 
+      -- Listens for click events on the cells
       let clickDetect row col _ = do gameOver <- readIORef globalGameOver
                                      board <- readIORef globalBoard
                                      if not gameOver
-                                       then do ret <- hasClass radioOpen "clicked"
+                                       then do ret <-
+                                                hasClass radioOpen "clicked"
                                                if ret
                                                  then clickOpen row col board
-                                                 else setFlag row col board
+                                                 else clickSetFlag row col board
                                        else do return ()
 
+      -- Creates a cell and registers click listener
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
-                                             attr "value" =: cellToButtonStr c]
+                                          attr "value" =: cellToButtonStr c]
                                      onEvent e Click (clickDetect row col)
                                      return e
 
 
+      -- From this point, the rest is just layout handling
       gameBoard <- getCellElems newCellElem b
 
       container <- newElem "div"
@@ -164,6 +185,7 @@ runGame i =
                 attr "alt" =: ":)"]
       setClass smiley "smiley" True
 
+      -- Add css stylesheet
       c <- getChildren document
       let html = c !! 0
       h <- getChildren html
@@ -176,12 +198,7 @@ runGame i =
       radioContainer <- newElem "div"
       setClass radioContainer "radioContainer" True
 
-
-
-      --setAttr documentBody "oncontextmenu" "return false;"
-
       appendChild headerEl  style
-
       appendChild documentBody container
       appendChild container header
       appendChild container gameDiv
@@ -212,10 +229,3 @@ runGame i =
 
       appendChild radioContainer radioFlag
       appendChild radioContainer flagLabel
-
-cellToButtonStr :: Cell -> String
-cellToButtonStr (C _          Idle)   = " "
-cellToButtonStr (C _          Marked) = "M"
-cellToButtonStr (C Mine       _)      = "¤"
-cellToButtonStr (C (Nearby n) _)      | n == 0 = " "
-                                      | otherwise = show n
