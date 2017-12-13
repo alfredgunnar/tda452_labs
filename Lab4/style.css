@@ -1,8 +1,12 @@
+body {
+  background-image: url("http://www.altocumulus.org/~hallgren/P/o023.jpg");
+}
 .container {
   margin: auto;
   width: 80%;
   font-size: 100%;
   font-family: "Comic Sans MS"
+  background-image: url("http://www.altocumulus.org/~hallgren/P/Texture0106.jpg");
 }
 
 h1 {
@@ -76,5 +80,5 @@ input {
 }
 
 p.loser {
-  
+
 }
