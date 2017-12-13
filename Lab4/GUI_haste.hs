@@ -14,20 +14,13 @@ data Interface = Interface
 
 
 
-newBoardElem' []     = []
-newBoardElem' (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' rs)
+newBoardElem' f []     = []
+newBoardElem' f (r:rs) = children ++ [newElem "br"] ++ (newBoardElem' f rs)
   where
-    children = map newCellElem r
+    children = map f r
 
 
-newCellElem c = newElem "input"
-                      `with` [attr "type" =: "button",
-                              attr "value" =: cellToButtonStr c,
-                              style "width" =: "30px",
-                              style "height" =: "30px",
-                              --style "background-color" =: "yellow",
-                              --style "background-color" =: "yellow",
-                              style "background-color" =: "lightyellow" ]
+
 
 implementation = Interface
  { iBoard = rndBoard,
@@ -67,9 +60,17 @@ runGame i =
 
       gameDiv <- newElem "div"
 
+      let newCellElem c = do newElem "input"
+                              `with` [attr "type" =: "button",
+                                    attr "value" =: cellToButtonStr c,
+                                    style "width" =: "30px",
+                                    style "height" =: "30px",
+                                    --style "background-color" =: "yellow",
+                                    --style "background-color" =: "yellow",
+                                    style "background-color" =: "lightyellow" ]
 
       let newBoardElem b = do parent <- newElem "div"
-                              children <- sequence (newBoardElem' (rows b))
+                              children <- sequence (newBoardElem' newCellElem (rows b))
                               setChildren parent children --(newBoardElem' (rows b))
                               return parent
 
