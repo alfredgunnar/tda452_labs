@@ -5,12 +5,16 @@ body {
   margin: auto;
   width: 80%;
   font-size: 100%;
-  font-family: "Comic Sans MS"
+  padding-bottom: 4em;
+  font-family: "Comic Sans MS";
   background-image: url("http://www.altocumulus.org/~hallgren/P/Texture0106.jpg");
 }
 
 h1 {
   text-align: center;
+  color: #06c;
+  font-family: Comic Sans MS;
+  text-shadow: #fff -1px -1px 0px, rgba(0,0,0,0.5) 1px 1px 1px;
 }
 
 .gameDiv {
