@@ -35,7 +35,7 @@ newCellElem c = newElem "input"
 implementation = Interface
  { iBoard = rndBoard,
    iOpen = open,
-   iHasWon = hasWon
+   iHasWon = hasWon,
    iMarkAt = markAt
  }
 
