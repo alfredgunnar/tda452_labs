@@ -1,0 +1,32 @@
+.container {
+  margin: auto;
+  width: 80%;
+  font-size: 100%;
+  font-family: "Comic Sans MS"
+}
+
+h1 {
+  text-align: center;
+}
+
+.gameDiv {
+  margin: auto;
+}
+
+input {
+  width: 2em;
+  height: 2em;
+  background-color: #BDBDBD;
+  font-size: inherit;
+}
+
+.clicked {
+  border-bottom-style: inset;
+  border-left-style: inset;
+  border-right-style: inset;
+  border-top-style: inset;
+}
+
+.winner, .loser{
+  text-align: center;
+}
