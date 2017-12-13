@@ -11,10 +11,7 @@ data Interface = Interface
   , iMarkAt   :: Int -> Int -> Board -> Board
   }
 
-newBoardElem b = do parent <- newElem "div"
-                    children <- sequence (newBoardElem' (rows b))
-                    setChildren parent children --(newBoardElem' (rows b))
-                    return parent
+
 
 
 newBoardElem' []     = []
@@ -45,7 +42,7 @@ runGame i =
    -- Definition of variables
    do hello <- newTextElem "Minesweeper Deluxe Edition"
       header <- newElem "h1"
-      
+
       rowinput <- newElem "input"
        `with` [attr "id" =: "row"]
 
@@ -71,7 +68,10 @@ runGame i =
       gameDiv <- newElem "div"
 
 
-
+      let newBoardElem b = do parent <- newElem "div"
+                              children <- sequence (newBoardElem' (rows b))
+                              setChildren parent children --(newBoardElem' (rows b))
+                              return parent
 
 
       -- Definition of functions
