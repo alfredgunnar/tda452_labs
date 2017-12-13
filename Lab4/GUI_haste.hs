@@ -7,8 +7,8 @@ import Data.Maybe (fromJust, isNothing)
 data Interface = Interface
   { iBoard    :: Int -> Int -> Int -> IO Board
   , iOpen     :: Int -> Int -> Board -> Maybe Board
+  , iMarkAt   :: Int -> Int -> Board -> Board
   }
-
 
 newBoardElem b = do parent <- newElem "div"
                     children <- sequence (newBoardElem' (rows b))
@@ -33,7 +33,8 @@ newCellElem c = newElem "input"
 
 implementation = Interface
  { iBoard = rndBoard,
-   iOpen = open
+   iOpen = open,
+   iMarkAt = markAt
  }
 
 main = runGame implementation
@@ -81,6 +82,11 @@ runGame i =
                                    else do e <- newTextElem "LOSER"
                                            appendChild gameDiv e
 
+      let setBoardFlag r c b = do clearChildren gameDiv
+                                  let b' = iMarkAt i r c b
+                                  gameBoard <- newBoardElem b'
+                                  writeIORef globalBoard b'
+                                  appendChild gameDiv gameBoard
 
       let update mouseData = do row <- getProp rowinput "value"
                                 col <- getProp colinput "value"
@@ -91,6 +97,17 @@ runGame i =
                                 reloadBoard r c board
 
                                 setProp output "value" (show (mouseButton mouseData) ++ "(" ++ show r ++ "," ++ show c ++ ")")
+
+      let setFlag _ = do row <- getProp rowinput "value"
+                         col <- getProp colinput "value"
+                         let r = read row :: Int -- can fail!
+                         let c = read col :: Int -- can fail!
+
+                         board <- readIORef globalBoard
+                         setBoardFlag r c board
+
+                         setProp output "value" (show "mark" ++ "(" ++ show r ++ "," ++ show c ++ ")")
+
 
       button <- newElem "input"
                   `with` [attr "type" =: "button",
@@ -104,6 +121,7 @@ runGame i =
       appendChild documentBody output
 
       onEvent button Click update
+      onEvent button Wheel setFlag
 
 cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
