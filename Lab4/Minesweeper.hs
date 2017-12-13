@@ -38,8 +38,8 @@ cellState (C _ cs) = cs
 -- | Given a cell, this function increments the counter within.
 -- | If it contains a mine, nothing is done and a mine is returned.
 incrementCell :: Cell -> Cell
-incrementCell (C Mine cs) = (C Mine cs)
-incrementCell (C (Nearby n) cs) = (C (Nearby (n+1)) cs)
+incrementCell (C Mine cs) = C Mine cs
+incrementCell (C (Nearby n) cs) = C (Nearby (n+1)) cs
 
 
 -----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ data Board = Board { rows :: [[Cell]] }
 
 -- | Returns the number of columns in given board
 width :: Board -> Int
-width b = length (rows b !! 0)
+width b = length (head (rows b))
 
 -- | Returns the number of rows in given board
 height :: Board -> Int
@@ -59,12 +59,12 @@ height b = length (rows b)
 setCellAt :: Int -> Int -> Cell -> Board -> Board
 setCellAt row col cell b = Board (rows b !!= (row,row''))
   where
-    row'  = (rows b) !! row
+    row'  = rows b !! row
     row'' = row' !!= (col,cell)
 
 -- | Returns the cell from given position in given board
 getCellAt :: Int -> Int -> Board -> Cell
-getCellAt row col b = ((rows b) !! row) !! col
+getCellAt row col b = (rows b !! row) !! col
 
 -- | Given row, col and board this function returns a list of the neighbour
 -- | positions.
@@ -105,8 +105,8 @@ clickAll :: Board -> Board
 clickAll b = Board (clickAll' (rows b))
   where
     clickAll' :: [[Cell]] -> [[Cell]]
-    clickAll' [] = []
-    clickAll' (r:rs) = ((map click r):(clickAll' rs))
+    clickAll' = foldr ((:) . map click) []
+
 
 -----------------------------------------------------------------------------
 -- * Printing Board
@@ -116,11 +116,11 @@ printBoardWrapper :: ([Cell] -> String) -> Board -> IO ()
 printBoardWrapper f b = putStrLn (concatMap f (rows b))
 
 printBoard :: Board -> IO ()
-printBoard b = printBoardWrapper boardLineToString b
+printBoard = printBoardWrapper boardLineToString
 
 -- | Prints board and takes into account if cells are clicked or not
 printBoardClick :: Board -> IO ()
-printBoardClick b = printBoardWrapper boardLineToStringClick b
+printBoardClick = printBoardWrapper boardLineToStringClick
 
 boardLineToString :: [Cell] -> String
 boardLineToString = foldr ((:) . cellToChar) "\n"
@@ -147,7 +147,7 @@ cellToCharClick (C ct Clicked) = cellToChar (C ct Clicked)
 -- | generates a board without any bombs.
 emptyBoard :: Int -> Int -> Board
 emptyBoard rows cols =
-  Board [[(C (Nearby 0) Idle) | _ <- [1..cols]] | _ <-[1..rows]]
+  Board [[C (Nearby 0) Idle | _ <- [1..cols]] | _ <-[1..rows]]
 
 -- | Given an int between 0-100 this generates a cell where the int
 -- | represents the probability of the cell being a mine.
@@ -162,7 +162,7 @@ rndCell n = do rnd <- randomRIO (0,100)
 -- | a generator for a board.
 rndBoard :: Int -> Int -> Int -> IO Board
 rndBoard rows cols prob =
-  do rows <- sequence [sequence [(rndCell prob) | _ <- [1..cols]] | _ <- [1..rows]]
+  do rows <- sequence [sequence [rndCell prob | _ <- [1..cols]] | _ <- [1..rows]]
      let b = setNearbyMarkers (Board rows)
      return b
 
@@ -183,12 +183,12 @@ findMinesOnRows (r:rs) b = findMinesOnRows rs (findMinesOnRow row_num r b)
 -- | the neighbours of every mine in the current row.
 findMinesOnRow :: Int -> [Cell] -> Board -> Board
 findMinesOnRow row_num [] b        = b
-findMinesOnRow row_num ((C Mine cst):cs) b =
+findMinesOnRow row_num (C Mine cst:cs) b =
   findMinesOnRow row_num cs (
       incrementAtPositions (cellNeighbours row_num col_num b) b
     )
   where
-    col_num = (width b) - length ((C Mine cst):cs)
+    col_num = width b - length (C Mine cst:cs)
 
 findMinesOnRow row_num (c:cs) b    = findMinesOnRow row_num cs b
 
@@ -223,10 +223,10 @@ open row col b | ct == Mine = Nothing
 explodeBoardAt :: Int -> Int -> Board -> Board
 explodeBoardAt row col b
   | cellTypeAt row col b == Mine = b
-  | (cellTypeAt row col b == Nearby 0 && not (isClicked (getCellAt row col b)))
+  | cellTypeAt row col b == Nearby 0 && not (isClicked (getCellAt row col b))
   = explodeBoardAtPositions nb
     (setCellAt row col (click (getCellAt row col b)) b)
-  | otherwise = (setCellAt row col (click (getCellAt row col b)) b)
+  | otherwise = setCellAt row col (click (getCellAt row col b)) b
   where
     nb = cellNeighbours row col b
 
@@ -248,6 +248,6 @@ hasWon b = hasWon' (concat (rows b))
 
 hasWon' :: [Cell] -> Bool
 hasWon' [] = True
-hasWon' ((C (Nearby n) cst):cs) | cst == Idle || cst == Marked = False
-hasWon' ((C Mine Clicked):cs) = False
+hasWon' (C (Nearby n) cst:cs) | cst == Idle || cst == Marked = False
+hasWon' (C Mine Clicked:cs) = False
 hasWon' (c:cs) = hasWon' cs
