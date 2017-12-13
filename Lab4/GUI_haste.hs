@@ -42,38 +42,33 @@ implementation = Interface
 main = runGame implementation
 
 runGame i =
-   do hello <- newTextElem "Minesweeper Deluxe Edition"
-      header <- newElem "h1"
-      appendChild header hello
-      appendChild documentBody header
+   -- Definition of variables
+   do rowinput <- newElem "input"
+       `with` [attr "id" =: "row"]
 
-      b <- (iBoard i 10 10 8)
-      globalBoard <- newIORef b
-
-      gameDiv <- newElem "div"
-      appendChild documentBody gameDiv
-
-      gameBoard <- newBoardElem b
-      appendChild gameDiv gameBoard
-
-
-      rowinput <- newElem "input"
-        `with` [attr "id" =: "row"]
       rowlabeltxt <- newTextElem "Row"
       rowlabel <- newElem "label"
-        `with` [attr "for" =: "row"]
-      appendChild rowlabel rowlabeltxt
+       `with` [attr "for" =: "row"]
 
       colinput <- newElem "input"
-        `with` [attr "id" =: "col"]
+       `with` [attr "id" =: "col"]
       collabeltxt <- newTextElem "Col"
       collabel <- newElem "label"
-        `with` [attr "for" =: "col"]
-      appendChild collabel collabeltxt
+       `with` [attr "for" =: "col"]
 
       output <- newElem "input"
 
+      button <- newElem "input"
+                  `with` [attr "type" =: "button",
+                          attr "value" =: "Update"]
 
+
+      b <- (iBoard i 10 10 1)
+      globalBoard <- newIORef b
+      gameDiv <- newElem "div"
+      gameBoard <- newBoardElem b
+
+      -- Definition of functions
       let reloadBoard r c b = do clearChildren gameDiv
                                  let b' = iOpen i r c b
 
@@ -117,10 +112,19 @@ runGame i =
                          setProp output "value" (show "mark" ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
 
-      button <- newElem "input"
-                  `with` [attr "type" =: "button",
-                          attr "value" =: "Update"]
+      hello <- newTextElem "Minesweeper Deluxe Edition"
+      header <- newElem "h1"
+      appendChild header hello
+      appendChild documentBody header
 
+
+
+
+
+      appendChild documentBody gameDiv
+      appendChild gameDiv gameBoard
+      appendChild rowlabel rowlabeltxt
+      appendChild collabel collabeltxt
       appendChild documentBody rowlabel
       appendChild documentBody rowinput
       appendChild documentBody collabel
