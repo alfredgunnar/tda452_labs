@@ -190,7 +190,7 @@ runGame i =
       appendChild gameContainer gameDiv
       setChildren gameDiv gameBoard
 
-      appendChild documentBody radioContainer
+      appendChild container radioContainer
 
       openLabel <- newElem "label"
         `with` [attr "for" =: "radioOpen"]
