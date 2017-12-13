@@ -62,6 +62,10 @@ runGame i =
                   `with` [style "width" =: gameDivWidth]
       setClass gameDiv "gameDiv" True
 
+      gameContainer <- newElem "div"
+                     `with` [style "width" =: gameDivWidth]
+      setClass gameContainer "gameContainer" True
+
       let announceWinner = do e <- newTextElem "WINNER!"
                               w <- newElem "p"
                               appendChild w e
@@ -73,7 +77,7 @@ runGame i =
                              l <- newElem "p"
                              appendChild l e
                              setClass l "loser" True
-                             appendChild gameDiv l
+                             appendChild gameContainer l
                              writeIORef globalGameOver True
 
       let clickDetect row col _ = do gameOver <- readIORef globalGameOver
@@ -123,11 +127,11 @@ runGame i =
       container <- newElem "div"
       setClass container "container" True
 
-      gameContainer <- newElem "div"
-                  `with` [style "width" =: gameDivWidth]
-      setClass gameContainer "gameContainer" True
+
 
       gameDivTop <- newElem "div"
+                     `with` [style "width" =: gameDivWidth]
+
       setClass gameDivTop "gameDivTop" True
 
       smileyBtn <- newElem "button"
