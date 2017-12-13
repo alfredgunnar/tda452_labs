@@ -43,7 +43,10 @@ main = runGame implementation
 
 runGame i =
    -- Definition of variables
-   do rowinput <- newElem "input"
+   do hello <- newTextElem "Minesweeper Deluxe Edition"
+      header <- newElem "h1"
+      
+      rowinput <- newElem "input"
        `with` [attr "id" =: "row"]
 
       rowlabeltxt <- newTextElem "Row"
@@ -62,11 +65,14 @@ runGame i =
                   `with` [attr "type" =: "button",
                           attr "value" =: "Update"]
 
-
       b <- (iBoard i 10 10 1)
       globalBoard <- newIORef b
+
       gameDiv <- newElem "div"
-      gameBoard <- newBoardElem b
+
+
+
+
 
       -- Definition of functions
       let reloadBoard r c b = do clearChildren gameDiv
@@ -112,14 +118,11 @@ runGame i =
                          setProp output "value" (show "mark" ++ "(" ++ show r ++ "," ++ show c ++ ")")
 
 
-      hello <- newTextElem "Minesweeper Deluxe Edition"
-      header <- newElem "h1"
+      gameBoard <- newBoardElem b
+
+
       appendChild header hello
       appendChild documentBody header
-
-
-
-
 
       appendChild documentBody gameDiv
       appendChild gameDiv gameBoard
