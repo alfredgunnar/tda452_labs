@@ -112,9 +112,7 @@ runGame i =
 
       let newCellElem row col c = do e <- newElem "input"
                                        `with` [attr "type" =: "button",
-                                             attr "value" =: cellToButtonStr c,
-                                             attr "row" =: show row,
-                                             attr "col" =: show col]
+                                             attr "value" =: cellToButtonStr c]
                                      onEvent e Click (clickDetect row col)
                                      onEvent e Wheel (setFlag row col)
                                      return e
@@ -125,6 +123,20 @@ runGame i =
       container <- newElem "div"
       setClass container "container" True
 
+      gameContainer <- newElem "div"
+                  `with` [style "width" =: gameDivWidth]
+      setClass gameContainer "gameContainer" True
+
+      gameDivTop <- newElem "div"
+      setClass gameDivTop "gameDivTop" True
+
+      smileyBtn <- newElem "button"
+      setClass smileyBtn "smileyBtn" True
+
+      smiley <- newElem "img"
+        `with` [attr "src" =: "smiley.png",
+                attr "alt" =: ":)"]
+      setClass smiley "smiley" True
 
       c <- getChildren document
       let html = c !! 0
@@ -141,6 +153,13 @@ runGame i =
       appendChild documentBody container
       appendChild container header
       appendChild container gameDiv
+      appendChild documentBody container
+      appendChild container header
+      appendChild container gameContainer
+      appendChild gameContainer gameDivTop
+      appendChild gameDivTop smileyBtn
+      appendChild smileyBtn smiley
+      appendChild gameContainer gameDiv
       setChildren gameDiv gameBoard
       --appendChild documentBody output
 
