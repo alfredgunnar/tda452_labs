@@ -2,7 +2,7 @@ import Haste.DOM
 import Haste.Events
 import Data.IORef
 import Minesweeper
-import Data.Maybe (fromJust, isNothing)
+import Data.Maybe (fromJust, isJust)
 import Util
 
 data Interface = Interface
@@ -27,6 +27,7 @@ cellToButtonStr (C (Nearby n) _) | n == 0    = " "
 -- and also a board
 getCellElems f b = do parent <- newElem "div"
                       children <- sequence (getCellElems' 0 f (rows b))
+                      return children
 
 -- This is a helper function for getCellElems that is used to call the cell
 -- creator function for each row
