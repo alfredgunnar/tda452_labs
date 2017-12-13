@@ -1,5 +1,9 @@
 import Haste.DOM
 import Haste.Events
+import Haste.LocalStorage
+import Haste.Serialize
+import Haste.JSON
+import Data.IORef
 import Minesweeper
 import Data.Maybe (fromJust, isNothing)
 
@@ -28,12 +32,28 @@ newCellElem c = newElem "input"
 b1 = Board { rows = [[C Mine True,C (Nearby 1) True,C (Nearby 1) True],
                      [C (Nearby 0) True,C Mine False,C Mine False]]}
 
+--instance Serialize Cell where
+--  toJSON :: a -> JSON
+--  toJSON cell = show cell
+--  fromJSON :: JSON -> Parser a
+--  fromJSON (Num json) = show ""
+
+--instance Serialize CellType where
+----  toJSON :: a -> JSON
+--  toJSON Mine = (Num (fromIntegral(-1)))
+--  toJSON (Nearby n) = (Num (fromIntegral n))
+----  parseJSON :: JSON -> Parser a
+--  parseJSON (Num n) | n == -1 = Mine
+--                   | n > -1  = Nearby n
+
 implementation = Interface
  { iBoard = rndBoard,
    iOpen = open
  }
 
 main = runGame implementation
+
+a = rows b1
 
 runGame i =
    do hello <- newTextElem "Hello"
@@ -42,6 +62,9 @@ runGame i =
       appendChild documentBody header
 
       b <- (iBoard i 10 10 1)
+      globalBoard <- newIORef b
+
+      --setItem "minesweeper_board" (toJSON a)
 
       gameDiv <- newElem "div"
       appendChild documentBody gameDiv
@@ -69,8 +92,10 @@ runGame i =
 
       let reloadBoard r c b = do clearChildren gameDiv
                                  let b' = iOpen i r c b
+
                                  if not (isNothing b')
                                    then do gameBoard <- newBoardElem (fromJust b')
+                                           writeIORef globalBoard (fromJust b')
                                            appendChild gameDiv gameBoard
                                    else do e <- newTextElem "LOSER"
                                            appendChild documentBody e
@@ -81,7 +106,8 @@ runGame i =
                         let r = read row :: Int -- can fail!
                         let c = read col :: Int -- can fail!
 
-                        reloadBoard r c b
+                        board <- readIORef globalBoard
+                        reloadBoard r c board
 
                         setProp output "value" ("(" ++ show r ++ "," ++ show c ++ ")")
 

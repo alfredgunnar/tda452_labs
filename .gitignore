@@ -20,5 +20,5 @@ cabal.project.local
 .HTF/
 .DS_Store
 
-*/*.html
-*/*.jsmod
+*.html
+*.jsmod
