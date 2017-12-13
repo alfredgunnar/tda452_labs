@@ -171,4 +171,5 @@ cellToButtonStr :: Cell -> String
 cellToButtonStr (C _          Idle)   = " "
 cellToButtonStr (C _          Marked) = "M"
 cellToButtonStr (C Mine       _)      = "¤"
-cellToButtonStr (C (Nearby n) _)      = show n
+cellToButtonStr (C (Nearby n) _)      | n == 0 = " "
+                                      | otherwise = show n
