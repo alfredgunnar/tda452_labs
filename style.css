@@ -1,0 +1,103 @@
+body {
+  background-image: url("o023.jpg");
+  font-family: "Comic Sans MS";
+}
+
+.container, .radioContainer {
+  margin: auto;
+  width: auto;
+  font-size: 100;
+  padding: 1em 0em;
+  font-family: "Comic Sans MS";
+  background-image: url("Texture0106.jpg");
+}
+
+h1 {
+  text-align: center;
+  color: #06c;
+  font-family: Comic Sans MS;
+  text-shadow: #fff -1px -1px 0px, rgba(0,0,0,0.5) 1px 1px 1px;
+}
+
+.gameDiv {
+  margin: 10px auto 10px;
+  border-top: 2px solid #7B7B7B;
+  border-left: 2px solid #7B7B7B;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+}
+
+input, button {
+  cursor: pointer;
+}
+
+.gameContainer {
+  text-align: center;
+  margin: auto;
+  padding: 10px 10px 0px;
+  background-color: #BDBDBD;
+  height: 100%;
+  border: 2px solid #7B7B7B;
+  font-size: 100%;
+}
+
+input[type="button"] {
+  width: 2em;
+  height: 2em;
+  background-color: #BDBDBD;
+  font-size: inherit;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #7B7B7B;
+  border-bottom: 2px solid #7B7B7B;
+}
+
+input[type="button"].clicked {
+  border-bottom-style: inset;
+  border-left-style: inset;
+  border-right-style: inset;
+  border-top-style: inset;
+}
+
+.winner, .loser{
+  text-align: center;
+}
+
+.gameDivTop {
+  text-align: center;
+  margin: auto;
+  border-top: 2px solid #7B7B7B;
+  border-left: 2px solid #7B7B7B;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  height: 4em;
+  background-color: #C0C0C0;
+  font-size: 100%;
+}
+
+.smileyBtn {
+  margin-top: 1.2em;
+  padding: 2px 0px 0px;
+  width: 26px;
+  height: 26px;
+  font-size: 100%;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #7B7B7B;
+  border-bottom: 2px solid #7B7B7B;
+  background-color: #BDBDBD;
+  font-size: inherit;
+}
+
+p.loser {
+  font-size: 1.5em;
+}
+
+.radioContainer {
+  text-align: center;
+  padding: 1em;
+}
+
+input[type="radio"] {
+  margin-left: 2em;
+}
